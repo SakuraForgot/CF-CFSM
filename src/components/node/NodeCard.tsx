@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 import { useNodeCardModel } from "@/hooks/useNodeCardModel";
 import { usePreferences } from "@/hooks/usePreferences";
-import { useMetricColorsVersion } from "@/hooks/useMetricColors";
 import { useThemeSettings } from "@/hooks/useThemeSettings";
 import { formatBytes } from "@/utils/format";
 import {
@@ -55,9 +54,7 @@ export const NodeCard = memo(function NodeCard({
   uuid: string;
 }) {
   const { resolvedAppearance } = usePreferences();
-  // 自定义配色改动时 version 自增，拼进 redrawKey 让 canvas 进度条即时重画（含离线静态卡）。
-  const colorsVersion = useMetricColorsVersion();
-  const redrawKey = `${resolvedAppearance}:${colorsVersion}`;
+  const redrawKey = resolvedAppearance;
   const themeSettings = useThemeSettings();
   const model = useNodeCardModel(uuid, { includeMultiPing: true });
 

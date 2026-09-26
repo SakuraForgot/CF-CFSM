@@ -22,7 +22,6 @@ import {
   ChevronDown,
   ChevronUp,
   Grid3x3,
-  ImageIcon,
   LayoutGrid,
   LayoutTemplate,
   List,
@@ -34,10 +33,10 @@ import {
   Square,
   Sun,
   SunMoon,
-  Video,
-  Wallpaper,
 } from "lucide-react";
 import { clsx } from "clsx";
+import { ConsoleTabs } from "@/components/ui/ConsoleTabs";
+import { SelectionPanel } from "@/components/ui/SelectionPanel";
 import { InstancePanel } from "@/components/instance/InstancePanel";
 import { Spinner } from "@/components/ui/Spinner";
 import { Flag } from "@/components/ui/Flag";
@@ -52,7 +51,9 @@ import {
   useSiteThemeSyncStatus,
   type SiteThemeSyncPhase,
 } from "@/hooks/useSiteThemeOptions";
-import { useLocalThemeSettings } from "@/hooks/useThemeSettings";
+import { useLocalThemeSettings, useThemeSettings } from "@/hooks/useThemeSettings";
+import { usePreferences } from "@/hooks/usePreferences";
+import { resetViewModeOverrides, useViewMode } from "@/hooks/useViewMode";
 import { getNodes } from "@/services/api";
 import { carrierPingTasks } from "@/services/cfsm/mappers";
 import { clearPingLineOverrides } from "@/services/pingLineOverrideStore";
@@ -63,13 +64,7 @@ import {
 } from "@/services/themeSettingsStore";
 import { copyText } from "@/utils/clipboard";
 import type { NodeInfo, PingTask, ThemeSettings } from "@/types/cfsm";
-import {
-  DEFAULT_BACKGROUND_VIDEO_URL,
-  type BackgroundPosition,
-  type BackgroundSize,
-  normalizeBackgroundAlignment,
-  parseBackgroundAlignment,
-} from "@/utils/background";
+
 import {
   calculateCostSummary,
   calculateCostPremiumAmount,
@@ -103,35 +98,11 @@ import {
   DEFAULT_THEME_SETTINGS,
   normalizeThemeSettings,
   withPreferredAppearance,
-  type BackgroundMediaType,
   type ResolvedThemeSettings,
 } from "@/utils/themeSettings";
 
-import {
-  type OverviewRatingKind,
-  getDefaultOverviewRatingLabelText,
-} from "@/utils/overviewRating";
-import { HOME_SORT_FIELDS, HOME_SORT_FIELD_LABELS } from "@/utils/homeSort";
 
-const OVERVIEW_RATING_LABEL_FIELDS: Array<{
-  key: Extract<OverviewRatingKind, "bandwidth" | "asset">;
-  title: string;
-  toggleKey: "showBandwidthRating" | "showAssetRating";
-  tierHint: string;
-}> = [
-  {
-    key: "bandwidth",
-    title: "实时带宽",
-    toggleKey: "showBandwidthRating",
-    tierHint: "对应阶梯：≤1Mbps、≤10Mbps、≤100Mbps、>100Mbps",
-  },
-  {
-    key: "asset",
-    title: "资产概览",
-    toggleKey: "showAssetRating",
-    tierHint: "对应阶梯：≤500元、≤1500元、≤3000元、>3000元",
-  },
-];
+import { HOME_SORT_FIELDS, HOME_SORT_FIELD_LABELS } from "@/utils/homeSort";
 
 const APPEARANCE_OPTIONS = [
   { value: "light", label: "浅色", icon: Sun },
@@ -140,34 +111,13 @@ const APPEARANCE_OPTIONS = [
 ] as const;
 
 const NODE_VIEW_MODE_OPTIONS = [
-  { value: "large", label: "大卡片", icon: Square },
-  { value: "compact", label: "小卡片", icon: LayoutGrid },
-  { value: "mini", label: "迷你卡片", icon: Grid3x3 },
   { value: "list", label: "列表", icon: List },
+  { value: "compact", label: "卡片", icon: LayoutGrid },
+  { value: "mini", label: "紧凑", icon: Grid3x3 },
+  { value: "large", label: "详细", icon: Square },
 ] as const;
 
 const MOBILE_VIEW_MODE_OPTIONS = NODE_VIEW_MODE_OPTIONS.filter((option) => option.value !== "list");
-
-const BACKGROUND_MEDIA_TYPE_OPTIONS: Array<{
-  value: BackgroundMediaType;
-  label: string;
-  icon: typeof ImageIcon;
-}> = [
-  { value: "image", label: "图片", icon: ImageIcon },
-  { value: "video", label: "视频", icon: Video },
-];
-
-const BACKGROUND_SIZE_OPTIONS: Array<{ value: BackgroundSize; label: string }> = [
-  { value: "cover", label: "填满" },
-  { value: "contain", label: "完整" },
-  { value: "auto", label: "原始" },
-];
-
-const BACKGROUND_POSITION_OPTIONS: Array<{ value: BackgroundPosition; label: string }> = [
-  { value: "top", label: "顶部" },
-  { value: "center", label: "居中" },
-  { value: "bottom", label: "底部" },
-];
 
 function localDateInputMax() {
   const now = new Date();
@@ -317,7 +267,6 @@ function pickManagedThemeSettings(settings: ResolvedThemeSettings) {
     homepageMultiPingTaskIds: settings.homepageMultiPingTaskIds,
     fakePingForUnbound: settings.fakePingForUnbound,
     showHomeOverview: settings.showHomeOverview,
-    showAssetOverview: settings.showAssetOverview,
     showGroupTabs: settings.showGroupTabs,
     showRegionBar: settings.showRegionBar,
     showCardGroup: settings.showCardGroup,
@@ -330,14 +279,8 @@ function pickManagedThemeSettings(settings: ResolvedThemeSettings) {
     offlineNodesFirst: settings.offlineNodesFirst,
     adminNickname: settings.adminNickname,
     showCostSummary: settings.showCostSummary,
-    showCostSummaryFloatingButton: settings.showCostSummaryFloatingButton,
     showPriceForGuests: settings.showPriceForGuests,
     renewalReminderDays: settings.renewalReminderDays,
-    showOverviewRatings: settings.showOverviewRatings,
-    showBandwidthRating: settings.showBandwidthRating,
-    showAssetRating: settings.showAssetRating,
-    bandwidthRatingLabels: settings.bandwidthRatingLabels,
-    assetRatingLabels: settings.assetRatingLabels,
     compactShowTrafficTotal: settings.compactShowTrafficTotal,
     compactShowBilling: settings.compactShowBilling,
     compactShowUptime: settings.compactShowUptime,
@@ -350,14 +293,6 @@ function pickManagedThemeSettings(settings: ResolvedThemeSettings) {
         .map((uuid) => [uuid, settings.costPremiums[uuid]]),
     ),
     costRateApiUrl: settings.costRateApiUrl,
-    enableBackgroundImage: settings.enableBackgroundImage,
-    backgroundMediaType: settings.backgroundMediaType,
-    backgroundImage: settings.backgroundImage,
-    backgroundImageMobile: settings.backgroundImageMobile,
-    backgroundVideo: settings.backgroundVideo,
-    backgroundVideoDark: settings.backgroundVideoDark,
-    backgroundAlignment: settings.backgroundAlignment,
-    surfaceOpacity: settings.surfaceOpacity,
   };
 }
 
@@ -367,35 +302,15 @@ function managedSettingsSignature(settings: ThemeSettings & Record<string, unkno
 
 type ManagedThemeSettings = ReturnType<typeof pickManagedThemeSettings>;
 
-type ThemeDraft = Omit<
-  ManagedThemeSettings,
-  | "hiddenNodes"
-  | "costIgnoredNodes"
-  | "bandwidthRatingLabels"
-  | "assetRatingLabels"
-> & {
-  ratingLabels: {
-    bandwidth: string;
-    asset: string;
-  };
+type ThemeDraft = Omit<ManagedThemeSettings, "hiddenNodes" | "costIgnoredNodes"> & {
   hiddenNodesText: string;
   costIgnoredText: string;
 };
 
 function draftFromSettings(settings: ResolvedThemeSettings): ThemeDraft {
-  const {
-    hiddenNodes,
-    costIgnoredNodes,
-    bandwidthRatingLabels,
-    assetRatingLabels,
-    ...rest
-  } = pickManagedThemeSettings(settings);
+  const { hiddenNodes, costIgnoredNodes, ...rest } = pickManagedThemeSettings(settings);
   return {
     ...rest,
-    ratingLabels: {
-      bandwidth: bandwidthRatingLabels,
-      asset: assetRatingLabels,
-    },
     hiddenNodesText: hiddenNodes.join("\n"),
     costIgnoredText: costIgnoredNodes.join("\n"),
   };
@@ -756,9 +671,9 @@ const THEME_TABS: ReadonlyArray<{
   hint: string;
   icon: typeof LayoutTemplate;
 }> = [
-  { id: "appearance", label: "外观", hint: "外观、视图、背景媒体、透明度", icon: LayoutTemplate },
+  { id: "appearance", label: "外观", hint: "浅深色与默认服务器视图", icon: LayoutTemplate },
   { id: "home", label: "首页", hint: "总览、分组、排序、隐藏节点", icon: ListFilter },
-  { id: "card", label: "卡片", hint: "卡片上显示哪些信息与悬浮窗", icon: Rows3 },
+  { id: "card", label: "卡片", hint: "分组、计费与网络指标", icon: Rows3 },
   { id: "cost", label: "花费", hint: "资产统计与收购溢价", icon: CircleDollarSign },
   { id: "ping", label: "延迟", hint: "多线路与逐节点指定", icon: Activity },
 ];
@@ -770,8 +685,6 @@ function isThemeTabId(value: string | null): value is ThemeTabId {
 }
 
 const THEME_AUTO_SAVE_DEBOUNCE_MS = 600;
-const BODY_BOTTOM_GAP = 2;
-const MIN_BODY_HEIGHT = 320;
 
 function SiteSyncIndicator({
   phase,
@@ -801,7 +714,7 @@ function SiteSyncIndicator({
         : phase === "synced"
           ? [<Cloud key="synced" size={14} />, "已同步到后端"]
           : phase === "error"
-            ? [<CloudAlert key="error" size={14} />, "同步失败，正在重试…"]
+            ? [<CloudAlert key="error" size={14} />, "同步失败，请重试"]
             : [<Cloud key="idle" size={14} />, "改动会自动同步到后端"];
 
   return (
@@ -818,6 +731,8 @@ function SiteSyncIndicator({
 }
 
 export function ThemeManage() {
+  const { appearance, resetAppearance } = usePreferences();
+  const { device: viewDevice, mode: activeViewMode } = useViewMode();
   const now = useHourlyClock();
   const {
     data: config,
@@ -836,8 +751,6 @@ export function ThemeManage() {
   const [nodeSearch, setNodeSearch] = useState("");
   const [premiumSearch, setPremiumSearch] = useState("");
   const [savedLocally, setSavedLocally] = useState(false);
-  const bodyRef = useRef<HTMLDivElement>(null);
-  const sectionsRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -849,8 +762,19 @@ export function ThemeManage() {
     <K extends keyof ThemeDraft>(key: K, value: ThemeDraft[K]) => {
       editVersionRef.current += 1;
       setDraft((prev) => (Object.is(prev[key], value) ? prev : { ...prev, [key]: value }));
+      // Display choices apply immediately and replace this device's earlier quick switch.
+      // Save these independent fields without waiting for unrelated form validation.
+      if (key === "defaultAppearance" || key === "desktopNodeViewMode" || key === "mobileNodeViewMode") {
+        saveLocalThemeSettings({ ...getLocalThemeSettings(), [key]: value });
+        if (key === "defaultAppearance") {
+          resetAppearance(value as ThemeDraft["defaultAppearance"]);
+        } else {
+          resetViewModeOverrides(key === "desktopNodeViewMode" ? "desktop" : "mobile");
+        }
+        setSavedLocally(true);
+      }
     },
-    [],
+    [resetAppearance],
   );
 
   const patchBindings = useCallback(
@@ -864,46 +788,6 @@ export function ThemeManage() {
     [],
   );
 
-  useEffect(() => {
-    const element = bodyRef.current;
-    if (!element) return;
-    const measure = () => {
-      if (window.innerWidth < 900) {
-        element.style.removeProperty("--theme-body-height");
-        return;
-      }
-      const rect = element.getBoundingClientRect();
-      const top = rect.top + window.scrollY;
-      const main = element.closest("main");
-      let padBottom = 0;
-      for (
-        let node: HTMLElement | null = element.parentElement;
-        node && main && (node === main || main.contains(node));
-        node = node.parentElement
-      ) {
-        const style = window.getComputedStyle(node);
-        padBottom +=
-          parseFloat(style.paddingBottom || "0") + parseFloat(style.borderBottomWidth || "0");
-        if (node === main) break;
-      }
-      const footerHeight =
-        document.querySelector(".site-footer")?.getBoundingClientRect().height ?? 0;
-      const available = window.innerHeight - top - footerHeight - padBottom - BODY_BOTTOM_GAP;
-      element.style.setProperty("--theme-body-height", `${Math.max(MIN_BODY_HEIGHT, available)}px`);
-    };
-    measure();
-    window.addEventListener("resize", measure);
-    const observer = new ResizeObserver(measure);
-    const topbar = document.querySelector(".theme-topbar");
-    const footer = document.querySelector(".site-footer");
-    if (topbar) observer.observe(topbar);
-    if (footer) observer.observe(footer);
-    return () => {
-      window.removeEventListener("resize", measure);
-      observer.disconnect();
-    };
-  }, []);
-
   const openTab = useCallback(
     (next: ThemeTabId) => {
       setSearchParams(
@@ -914,11 +798,7 @@ export function ThemeManage() {
         },
         { replace: true },
       );
-      if (window.innerWidth >= 900) {
-        sectionsRef.current?.scrollTo({ top: 0 });
-      } else {
-        bodyRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
+
     },
     [setSearchParams],
   );
@@ -987,10 +867,7 @@ export function ThemeManage() {
     retry: false,
   });
 
-  const sourceThemeSettings = useMemo(
-    () => normalizeThemeSettings(config?.theme_settings),
-    [config?.theme_settings],
-  );
+  const sourceThemeSettings = useThemeSettings();
   const sourceSignature = useMemo(
     () => JSON.stringify(pickManagedThemeSettings(sourceThemeSettings)),
     [sourceThemeSettings],
@@ -1158,25 +1035,12 @@ export function ThemeManage() {
     draft.enableHomepageMultiPing &&
     !isHomepageMultiPingConfigured(draft.homepageMultiPingTaskIds);
 
-  const setRatingLabelDraft = useCallback((key: "bandwidth" | "asset", value: string) => {
-    editVersionRef.current += 1;
-    setDraft((prev) => ({
-      ...prev,
-      ratingLabels: {
-        ...prev.ratingLabels,
-        [key]: value,
-      },
-    }));
-  }, []);
-
   const draftThemeSettings = useMemo<ThemeSettings>(() => {
-    const { ratingLabels, hiddenNodesText, costIgnoredText, ...rest } = draft;
+    const { hiddenNodesText, costIgnoredText, ...rest } = draft;
     return {
       ...rest,
       homepagePingBindings: pruneBindings(rest.homepagePingBindings),
       homeGroupOrder: normalizeHomeGroupOrder(rest.homeGroupOrder),
-      bandwidthRatingLabels: ratingLabels.bandwidth,
-      assetRatingLabels: ratingLabels.asset,
       hiddenNodes: normalizeNodeIdentityList(hiddenNodesText),
       costIgnoredNodes: normalizeCostIgnoredNodes(costIgnoredText),
       costPremiums: normalizeCostPremiums(rest.costPremiums),
@@ -1267,14 +1131,17 @@ export function ThemeManage() {
   };
 
   const handleRestoreSiteDefaults = () => {
+    const defaults = normalizeThemeSettings(
+      withPreferredAppearance(config?.preferredAppearance, config?.theme_settings ?? {}),
+    );
     cancelSiteThemeSync();
+    autoSaveRef.current = null;
+    editVersionRef.current = 0;
     resetLocalThemeSettings();
     clearPingLineOverrides();
-    seedDrafts(
-      normalizeThemeSettings(
-        withPreferredAppearance(config?.preferredAppearance, config?.theme_settings ?? {}),
-      ),
-    );
+    resetAppearance(defaults.defaultAppearance);
+    resetViewModeOverrides();
+    seedDrafts(defaults);
     setMessage("已丢弃本机设置，改用后端当前的配置");
     setError(null);
   };
@@ -1285,19 +1152,6 @@ export function ThemeManage() {
     phase: siteSync.phase,
     waiting: draftAwaitingAutoSave,
   });
-
-  const draftBgAlignment = useMemo(
-    () => parseBackgroundAlignment(draft.backgroundAlignment),
-    [draft.backgroundAlignment],
-  );
-
-  const setBgSize = (size: BackgroundSize) => {
-    patch("backgroundAlignment", normalizeBackgroundAlignment({ size, position: draftBgAlignment.position }));
-  };
-
-  const setBgPosition = (position: BackgroundPosition) => {
-    patch("backgroundAlignment", normalizeBackgroundAlignment({ size: draftBgAlignment.size, position }));
-  };
 
   if (configLoading) {
     return (
@@ -1340,7 +1194,7 @@ export function ThemeManage() {
   return (
     <div className="theme-manage flex flex-col gap-5 py-2">
       <header className="theme-topbar">
-        <Link to="/" className="instance-page-back theme-topbar-back">
+        <Link to="/" aria-label="返回首页" className="instance-page-back theme-topbar-back">
           <ArrowLeft size={14} />
           <span>返回首页</span>
         </Link>
@@ -1412,54 +1266,39 @@ export function ThemeManage() {
         </div>
       )}
 
-      <div className="theme-manage-body" ref={bodyRef}>
-        <nav className="theme-tab-rail" aria-label="设置分组">
-          {THEME_TABS.map(({ id, label, hint, icon: Icon }) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => openTab(id)}
-              data-active={activeTab === id ? "true" : "false"}
-              aria-current={activeTab === id ? "page" : undefined}
-              className="theme-tab"
-            >
-              <Icon size={14} className="theme-tab-icon" />
-              <span className="theme-tab-label">{label}</span>
-              <span className="theme-tab-hint">{hint}</span>
-            </button>
-          ))}
-        </nav>
-
-        <div className="theme-manage-sections" ref={sectionsRef}>
+      <div className="theme-manage-body">
+        <ConsoleTabs
+          label="设置分组"
+          value={activeTab}
+          onValueChange={(value) => { if (isThemeTabId(value)) openTab(value); }}
+          items={THEME_TABS.map(({ id, label }) => ({ value: id, label }))}
+        />
+        <SelectionPanel selectionKey={activeTab} className="theme-manage-sections">
           {activeTab === "appearance" && (
             <>
               <InstancePanel
                 id="set-appearance"
                 kicker="外观"
                 title="默认外观"
+                description="选择后立即应用到当前设备，并保存为默认外观；顶部按钮仍可临时切换。"
                 aside={<LayoutTemplate size={16} />}
               >
-                <div className="instance-segmented is-prominent is-even">
-                  {APPEARANCE_OPTIONS.map(({ value, label, icon: Icon }) => (
-                    <button
-                      key={value}
-                      type="button"
-                      data-active={draft.defaultAppearance === value ? "true" : "false"}
-                      aria-pressed={draft.defaultAppearance === value}
-                      onClick={() => patch("defaultAppearance", value)}
-                      className="inline-flex items-center justify-center gap-2"
-                    >
-                      <Icon size={14} />
-                      <span>{label}</span>
-                    </button>
-                  ))}
-                </div>
+                <ConsoleTabs
+                  label="默认外观"
+                  value={appearance}
+                  onValueChange={(value) => patch("defaultAppearance", value as ThemeDraft["defaultAppearance"])}
+                  items={APPEARANCE_OPTIONS.map(({ value, label, icon: Icon }) => ({
+                    value, label: <span className="inline-flex items-center gap-2"><Icon size={14} />{label}</span>,
+                  }))}
+                />
+
               </InstancePanel>
 
               <InstancePanel
                 id="set-view"
                 kicker="视图"
-                title="默认卡片视图"
+                title="默认服务器视图"
+                description="选择后覆盖当前设备此前的视图选择，返回服务器列表即可看到效果。"
                 aside={<LayoutGrid size={16} />}
               >
                 <div className="grid gap-4 md:grid-cols-2">
@@ -1472,21 +1311,15 @@ export function ThemeManage() {
                         适用于宽度大于 720px 的浏览器窗口。
                       </div>
                     </div>
-                    <div className="instance-segmented is-prominent is-even">
-                      {NODE_VIEW_MODE_OPTIONS.map(({ value, label, icon: Icon }) => (
-                        <button
-                          key={value}
-                          type="button"
-                          data-active={draft.desktopNodeViewMode === value ? "true" : "false"}
-                          aria-pressed={draft.desktopNodeViewMode === value}
-                          onClick={() => patch("desktopNodeViewMode", value)}
-                          className="inline-flex items-center justify-center gap-2"
-                        >
-                          <Icon size={14} />
-                          <span>{label}</span>
-                        </button>
-                      ))}
-                    </div>
+                    <ConsoleTabs
+                      label="桌面端默认视图"
+                      value={viewDevice === "desktop" ? activeViewMode : draft.desktopNodeViewMode}
+                      onValueChange={(value) => patch("desktopNodeViewMode", value as ThemeDraft["desktopNodeViewMode"])}
+                      items={NODE_VIEW_MODE_OPTIONS.map(({ value, label, icon: Icon }) => ({
+                        value, label: <span className="inline-flex items-center gap-2"><Icon size={14} />{label}</span>,
+                      }))}
+                    />
+
                   </div>
                   <div className="surface-inset setting-segment-slot flex flex-col gap-3 px-4 py-4">
                     <div>
@@ -1497,182 +1330,20 @@ export function ThemeManage() {
                         适用于宽度小于等于 720px 的手机或窄屏窗口。
                       </div>
                     </div>
-                    <div className="instance-segmented is-prominent is-even">
-                      {MOBILE_VIEW_MODE_OPTIONS.map(({ value, label, icon: Icon }) => (
-                        <button
-                          key={value}
-                          type="button"
-                          data-active={draft.mobileNodeViewMode === value ? "true" : "false"}
-                          aria-pressed={draft.mobileNodeViewMode === value}
-                          onClick={() => patch("mobileNodeViewMode", value)}
-                          className="inline-flex items-center justify-center gap-2"
-                        >
-                          <Icon size={14} />
-                          <span>{label}</span>
-                        </button>
-                      ))}
-                    </div>
+                    <ConsoleTabs
+                      label="移动端默认视图"
+                      value={viewDevice === "mobile" ? activeViewMode : draft.mobileNodeViewMode}
+                      onValueChange={(value) => patch("mobileNodeViewMode", value as ThemeDraft["mobileNodeViewMode"])}
+                      items={MOBILE_VIEW_MODE_OPTIONS.map(({ value, label, icon: Icon }) => ({
+                        value, label: <span className="inline-flex items-center gap-2"><Icon size={14} />{label}</span>,
+                      }))}
+                    />
+
                   </div>
                 </div>
               </InstancePanel>
 
-              <InstancePanel
-                id="set-background"
-                kicker="背景媒体"
-                title="自定义背景图与动态视频"
-                description="支持配置高质感壁纸或循环 MP4 视频背景（提供日夜双模适配）。"
-                aside={<Wallpaper size={16} />}
-              >
-                <div className="flex flex-col gap-4">
-                  <ToggleRow
-                    field="enableBackgroundImage"
-                    title="启用自定义背景媒体"
-                    desc="开启后将覆盖站点默认背景，优先应用下方配置的图片或视频。"
-                    checked={draft.enableBackgroundImage}
-                    onPatch={patch}
-                  />
 
-                  {draft.enableBackgroundImage && (
-                    <>
-                      <div className="surface-inset flex flex-col gap-3 px-4 py-4">
-                        <span className="setting-subhead-title">媒体形式</span>
-                        <div className="instance-segmented is-prominent is-even">
-                          {BACKGROUND_MEDIA_TYPE_OPTIONS.map(({ value, label, icon: Icon }) => (
-                            <button
-                              key={value}
-                              type="button"
-                              data-active={draft.backgroundMediaType === value ? "true" : "false"}
-                              aria-pressed={draft.backgroundMediaType === value}
-                              onClick={() => patch("backgroundMediaType", value)}
-                              className="inline-flex items-center justify-center gap-2"
-                            >
-                              <Icon size={14} />
-                              <span>{label}</span>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      {draft.backgroundMediaType === "image" ? (
-                        <div className="grid gap-4 md:grid-cols-2">
-                          <label className="surface-inset flex flex-col gap-2 px-4 py-3">
-                            <span className="setting-subhead-title">桌面端背景图 URL</span>
-                            <input
-                              type="url"
-                              value={draft.backgroundImage}
-                              onChange={(event) => patch("backgroundImage", event.target.value)}
-                              placeholder="https://example.com/desktop.jpg"
-                              className="surface-inset px-3 py-2 text-[13px] outline-none"
-                            />
-                            <span className="setting-hint">宽屏与桌面端加载的背景图。</span>
-                          </label>
-
-                          <label className="surface-inset flex flex-col gap-2 px-4 py-3">
-                            <span className="setting-subhead-title">移动端背景图 URL</span>
-                            <input
-                              type="url"
-                              value={draft.backgroundImageMobile}
-                              onChange={(event) => patch("backgroundImageMobile", event.target.value)}
-                              placeholder="https://example.com/mobile.jpg"
-                              className="surface-inset px-3 py-2 text-[13px] outline-none"
-                            />
-                            <span className="setting-hint">竖屏手机加载，留空则沿用桌面端。</span>
-                          </label>
-
-                          <div className="surface-inset flex flex-col gap-2 px-4 py-3">
-                            <span className="setting-subhead-title">平铺尺寸</span>
-                            <div className="instance-segmented is-even">
-                              {BACKGROUND_SIZE_OPTIONS.map(({ value, label }) => (
-                                <button
-                                  key={value}
-                                  type="button"
-                                  data-active={draftBgAlignment.size === value ? "true" : "false"}
-                                  onClick={() => setBgSize(value)}
-                                >
-                                  {label}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="surface-inset flex flex-col gap-2 px-4 py-3">
-                            <span className="setting-subhead-title">对齐位置</span>
-                            <div className="instance-segmented is-even">
-                              {BACKGROUND_POSITION_OPTIONS.map(({ value, label }) => (
-                                <button
-                                  key={value}
-                                  type="button"
-                                  data-active={draftBgAlignment.position === value ? "true" : "false"}
-                                  onClick={() => setBgPosition(value)}
-                                >
-                                  {label}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="grid gap-4 md:grid-cols-2">
-                          <label className="surface-inset flex flex-col gap-2 px-4 py-3">
-                            <span className="setting-subhead-title">浅色模式视频 URL (MP4)</span>
-                            <input
-                              type="url"
-                              value={draft.backgroundVideo}
-                              onChange={(event) => patch("backgroundVideo", event.target.value)}
-                              placeholder={DEFAULT_BACKGROUND_VIDEO_URL}
-                              className="surface-inset px-3 py-2 text-[13px] outline-none"
-                            />
-                            <span className="setting-hint">留空使用主题内置动态视频。</span>
-                          </label>
-
-                          <label className="surface-inset flex flex-col gap-2 px-4 py-3">
-                            <span className="setting-subhead-title">深色模式视频 URL (MP4)</span>
-                            <input
-                              type="url"
-                              value={draft.backgroundVideoDark}
-                              onChange={(event) => patch("backgroundVideoDark", event.target.value)}
-                              placeholder="可选，夜间专属视频"
-                              className="surface-inset px-3 py-2 text-[13px] outline-none"
-                            />
-                            <span className="setting-hint">留空则在深色下自动叠加暗色暗场滤镜。</span>
-                          </label>
-                        </div>
-                      )}
-                    </>
-                  )}
-
-                  <div className="surface-inset flex flex-col gap-3 px-4 py-4">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <span className="setting-subhead-title">
-                        卡片不透明度
-                      </span>
-                      <span className="inline-flex items-center gap-1.5">
-                        <input
-                          type="number"
-                          min={0}
-                          max={100}
-                          step={1}
-                          inputMode="numeric"
-                          value={draft.surfaceOpacity}
-                          onChange={(event) => {
-                            if (event.target.value.trim() === "") return;
-                            const next = Number(event.target.value);
-                            if (!Number.isFinite(next)) return;
-                            patch("surfaceOpacity", Math.min(100, Math.max(0, Math.round(next))));
-                          }}
-                          aria-label="卡片不透明度百分比"
-                          className="surface-inset w-20 px-3 py-2 text-right text-[13px] tabular outline-none"
-                        />
-                        <span className="text-[13px] font-medium text-(--text-tertiary)">%</span>
-                      </span>
-                    </div>
-                    <span className="setting-hint">
-                      输入 0–100 的整数。100 = 完全不透明，数值越低卡片越通透、越能透出背景媒体。
-                      低于 95 时会自动叠加一层可读性遮罩，保证文字清晰。
-                    </span>
-                  </div>
-                </div>
-              </InstancePanel>
             </>
           )}
 
@@ -1688,7 +1359,7 @@ export function ThemeManage() {
                   <ToggleRow
                     field="showHomeOverview"
                     title="显示顶部总览栏"
-                    desc="在首页顶部显示服务器总数、在线率、总流量与实时速率看板。"
+                    desc="在首页显示资源概览、网络吞吐与集群状态。"
                     checked={draft.showHomeOverview}
                     onPatch={patch}
                   />
@@ -1822,61 +1493,7 @@ export function ThemeManage() {
                 </div>
               </InstancePanel>
 
-              <InstancePanel
-                id="set-overview-ratings"
-                kicker="评级"
-                title="总览文字评级"
-                aside={<ListFilter size={16} />}
-              >
-                <div className="flex flex-col gap-4">
-                  <div className="surface-inset flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-                    <span className="min-w-0">
-                      <span className="block setting-subhead-title">启用总览评级</span>
-                      <span className="mt-1 block setting-hint">
-                        在实时带宽（集群状态右上角）、资产概览右下角显示文字评级。
-                      </span>
-                    </span>
-                    <input
-                      type="checkbox"
-                      checked={draft.showOverviewRatings}
-                      onChange={(event) => patch("showOverviewRatings", event.target.checked)}
-                      className="h-4 w-4 shrink-0 accent-(--accent-500)"
-                    />
-                  </div>
 
-                  <div className="grid gap-3 md:grid-cols-2">
-                    {OVERVIEW_RATING_LABEL_FIELDS.map((field) => {
-                      const defaultLabel = getDefaultOverviewRatingLabelText(field.key);
-                      const ratingEnabled = draft.showOverviewRatings && draft[field.toggleKey];
-                      return (
-                        <div key={field.key} className="surface-inset flex min-w-0 flex-col gap-2 px-4 py-3">
-                          <label className="flex items-center justify-between gap-2">
-                            <span className="setting-subhead-title">{field.title}</span>
-                            <input
-                              type="checkbox"
-                              checked={draft[field.toggleKey]}
-                              disabled={!draft.showOverviewRatings}
-                              onChange={(event) => patch(field.toggleKey, event.target.checked)}
-                              className="h-4 w-4 shrink-0 accent-(--accent-500)"
-                            />
-                          </label>
-                          <input
-                            value={draft.ratingLabels[field.key]}
-                            disabled={!ratingEnabled}
-                            onChange={(event) => setRatingLabelDraft(field.key, event.target.value)}
-                            placeholder={defaultLabel}
-                            aria-label={`${field.title}评级名称`}
-                            className="surface-inset w-full px-3 py-2 text-[13px] outline-none disabled:opacity-60"
-                          />
-                          <span className="setting-hint">
-                            {field.tierHint}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </InstancePanel>
 
               <InstancePanel
                 id="set-hidden-nodes"
@@ -1906,7 +1523,7 @@ export function ThemeManage() {
               id="set-card-content"
               kicker="卡片"
               title="卡片展示内容"
-              description="定制大卡片、小卡片和列表模式下呈现的具体指标。"
+              description="选择服务器卡片和列表中需要展示的信息。"
               aside={<Rows3 size={16} />}
             >
               <div className="grid gap-3 md:grid-cols-2">
@@ -1926,22 +1543,22 @@ export function ThemeManage() {
                 />
                 <ToggleRow
                   field="compactShowTrafficTotal"
-                  title="小卡片显示累计流量"
-                  desc="在紧凑视图中展示月度或累计出入站流量。"
+                  title="卡片视图显示累计流量"
+                  desc="在卡片视图中展示月度或累计出入站流量。"
                   checked={draft.compactShowTrafficTotal}
                   onPatch={patch}
                 />
                 <ToggleRow
                   field="compactShowBilling"
-                  title="小卡片显示计费周期"
-                  desc="在紧凑视图中保留周期标注。"
+                  title="卡片视图显示计费周期"
+                  desc="在卡片视图中保留周期标注。"
                   checked={draft.compactShowBilling}
                   onPatch={patch}
                 />
                 <ToggleRow
                   field="compactShowUptime"
-                  title="小卡片显示在线时长"
-                  desc="在紧凑视图中展示系统运行时间。"
+                  title="卡片视图显示在线时长"
+                  desc="在卡片视图中展示系统运行时间。"
                   checked={draft.compactShowUptime}
                   onPatch={patch}
                 />
@@ -1965,25 +1582,19 @@ export function ThemeManage() {
                 aside={<CircleDollarSign size={16} />}
               >
                 <div className="flex flex-col gap-4">
-                  <div className="grid gap-3 md:grid-cols-3">
+                  <div className="grid gap-3 md:grid-cols-2">
                     <ToggleRow
                       field="showCostSummary"
-                      title="显示资产页入口按钮"
-                      desc="在首页资产概览卡右上角显示进入资产统计页的按钮。"
+                      title="显示服务器列表的资产入口"
+                      desc="在服务器列表底部显示「查看资产概览」；侧栏保留资产入口。"
                       checked={draft.showCostSummary}
                       onPatch={patch}
                     />
-                    <ToggleRow
-                      field="showCostSummaryFloatingButton"
-                      title="显示资产悬浮按钮"
-                      desc="卡内入口不可用时（总览隐藏或其开关关闭），以悬浮按钮进入资产统计页。"
-                      checked={draft.showCostSummaryFloatingButton}
-                      onPatch={patch}
-                    />
+
                     <ToggleRow
                       field="showPriceForGuests"
                       title="向访客公开价格与资产"
-                      desc="默认关闭。开启后，未登录访客也能查看节点续费价格标签与首页资产概览；关闭时对访客隐藏价格标签，资产概览显示为 保密。"
+                      desc="允许未登录访客在界面中查看价格与资产统计。数据访问权限仍由后端控制。"
                       checked={draft.showPriceForGuests}
                       onPatch={patch}
                     />
@@ -2198,7 +1809,7 @@ export function ThemeManage() {
               </InstancePanel>
             </>
           )}
-        </div>
+        </SelectionPanel>
       </div>
     </div>
   );

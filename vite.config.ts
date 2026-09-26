@@ -124,6 +124,7 @@ export default defineConfig(({ mode }) => {
       {
         name: "cloud-theme-assets",
         generateBundle() {
+          this.emitFile({ type: "asset", fileName: "assets/LICENSE.txt", source: fs.readFileSync("LICENSE", "utf8") });
           const lock = JSON.parse(fs.readFileSync("package-lock.json", "utf8")) as { packages: Record<string, { dev?: boolean; version?: string }> };
           const notices = [fs.readFileSync("THIRD_PARTY_NOTICES.md", "utf8")];
           for (const [dir, info] of Object.entries(lock.packages)) {
@@ -134,7 +135,7 @@ export default defineConfig(({ mode }) => {
             }
           }
           this.emitFile({ type: "asset", fileName: "assets/THIRD_PARTY_LICENSES.txt", source: notices.join("\n") });
-          for (const name of ["cloud.svg", "LanternRivers_1080p15fps2Mbps3s.mp4"]) {
+          for (const name of ["cloud.svg"]) {
             this.emitFile({ type: "asset", fileName: `assets/${name}`, source: fs.readFileSync(path.resolve("public/assets", name)) });
           }
         },

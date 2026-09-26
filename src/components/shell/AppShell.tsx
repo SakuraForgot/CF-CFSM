@@ -1,7 +1,6 @@
 import { Outlet, useLocation } from "react-router-dom";
 import { ConsoleNavigation } from "./ConsoleNavigation";
 import { Lock } from "lucide-react";
-import { BackgroundLayer } from "./BackgroundLayer";
 import { TurnstileGate } from "./TurnstileGate";
 import { SiteFooter } from "./SiteFooter";
 import { RealtimeSessionPrompt } from "./RealtimeSessionPrompt";
@@ -12,7 +11,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePublicConfig } from "@/hooks/usePublicConfig";
 import { useSiteMetadata, readStoredSiteMetadata } from "@/hooks/useSiteMetadata";
 import { useTurnstileVerificationRequired } from "@/hooks/useTurnstileVerification";
-import { useMetricColorsSync } from "@/hooks/useMetricColors";
 import { useNodeStoreStatus } from "@/hooks/useNode";
 import { getAdminUrl } from "@/services/cfsm/config";
 import { HomeSkeleton } from "./HomeSkeleton";
@@ -20,7 +18,6 @@ import { HomeSkeleton } from "./HomeSkeleton";
 export function AppShell() {
   useAppearance();
   useSiteMetadata();
-  useMetricColorsSync();
   const { pathname, search } = useLocation();
   const publicConfig = usePublicConfig();
   const auth = useAuth();
@@ -62,7 +59,6 @@ export function AppShell() {
 
   return (
     <div className="cf-console relative flex min-h-screen flex-col">
-      <BackgroundLayer />
       <TurnstileGate />
       <ConsoleNavigation siteName={siteName} />
       <main id="main-content" tabIndex={-1} className="app-main flex-1 px-3 pb-8 pt-6 sm:px-5 md:px-6 lg:px-8">

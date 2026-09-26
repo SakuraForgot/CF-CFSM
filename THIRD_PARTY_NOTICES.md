@@ -1,12 +1,14 @@
 # Third-party notices
 
+Original additions and modifications in CF-CFSM are licensed under the MIT License in LICENSE, copyright (c) 2026 SakuraForgot and CF-CFSM contributors. This notice does not replace the attribution or applicable licenses of inherited code and third-party dependencies. The build includes the project license in assets/LICENSE.txt.
+
 CFSM Cloud derives from WAOR/CFSM-SAO. Its README declares the MIT License. The checked-out snapshot does not include the linked LICENSE file; this document records the upstream attribution and declaration without inventing an upstream copyright year.
 
 - [WAOR/CFSM-SAO](https://github.com/WAOR/CFSM-SAO), by WAOR.
 - Initial design: [stqfdyr/komari-theme-Lumina](https://github.com/stqfdyr/komari-theme-Lumina).
 - Feature expansion: [shanyang242/Komari-Theme-LuminaPlus](https://github.com/shanyang242/Komari-Theme-LuminaPlus), by shanyang242 / shark.
 - CFSM port references: [volcano-1025/CFSM-Theme-LuminaPlus](https://github.com/volcano-1025/CFSM-Theme-LuminaPlus) and [guboysky/LuminaPlus](https://github.com/guboysky/LuminaPlus).
-- Background video reference inherited from SAO: [Montia37/komari-theme-purcarte](https://github.com/Montia37/komari-theme-purcarte).
+- Historical SAO background video reference: [Montia37/komari-theme-purcarte](https://github.com/Montia37/komari-theme-purcarte). The video is no longer bundled in CFSM Cloud.
 - Backend: [huilang-me/CF-Server-Monitor](https://github.com/huilang-me/CF-Server-Monitor).
 
 Kumo is distributed under the following license:

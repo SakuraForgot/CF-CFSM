@@ -34,7 +34,7 @@ describe("buildSiteThemeOptions", () => {
     expect(snapshot.homepagePingLineOverrides).toEqual({ "node-a": { "0": 5 } });
   });
 
-  it("layers site, local and draft settings, with colours merged one by one", () => {
+  it("layers active settings without publishing retired palette overrides", () => {
     const snapshot = buildSiteThemeOptions({
       ...base,
       siteSettings: { desktopNodeViewMode: "list", metricColors: { cpu: "#111111", disk: "#222222" } },
@@ -43,6 +43,26 @@ describe("buildSiteThemeOptions", () => {
     });
 
     expect(snapshot.desktopNodeViewMode).toBe("large");
-    expect(snapshot.metricColors).toEqual({ cpu: "#333333", disk: "#222222" });
+    expect(snapshot).not.toHaveProperty("metricColors");
+  });
+
+  it("keeps functional settings while dropping retired SAO options from a saved snapshot", () => {
+    const snapshot = buildSiteThemeOptions({
+      ...base,
+      siteSettings: {
+        enableBackgroundImage: true, backgroundMediaType: "video", backgroundVideo: "https://example.com/old.mp4",
+        surfaceOpacity: 10, darkDepth: 100, showOverviewRatings: true, showAssetRating: true,
+        showCostSummaryFloatingButton: true, showCostSummary: false,
+        costPremiums: { "node-a": { amount: 25 } }, hiddenNodes: ["node-b"], showConnections: true,
+      },
+    });
+    for (const key of ["enableBackgroundImage", "backgroundMediaType", "backgroundVideo", "surfaceOpacity",
+      "darkDepth", "showOverviewRatings", "showAssetRating", "showCostSummaryFloatingButton"]) {
+      expect(snapshot).not.toHaveProperty(key);
+    }
+    expect(snapshot.showCostSummary).toBe(false);
+    expect(snapshot.costPremiums).toEqual({ "node-a": { amount: 25 } });
+    expect(snapshot.hiddenNodes).toEqual(["node-b"]);
+    expect(snapshot.showConnections).toBe(true);
   });
 });

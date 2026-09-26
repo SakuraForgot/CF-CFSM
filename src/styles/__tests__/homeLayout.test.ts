@@ -3,10 +3,6 @@ import { describe, expect, it } from "vitest";
 
 const homeCss = readFileSync(new URL("../home.css", import.meta.url), "utf8");
 const surfaceCss = readFileSync(new URL("../surface.css", import.meta.url), "utf8");
-const controlsSource = readFileSync(
-  new URL("../../components/shell/FloatingControls.tsx", import.meta.url),
-  "utf8",
-);
 const miniSource = readFileSync(
   new URL("../../components/node/MiniNodeCard.tsx", import.meta.url),
   "utf8",
@@ -34,13 +30,6 @@ describe("home responsive layout contracts", () => {
     for (const breakpoint of [1440, 1150, 860, 580]) {
       expect(homeCss).toContain(`@media (max-width: ${breakpoint}px)`);
     }
-  });
-
-  it("resets child panels on collapse and keeps home-only routing out of controls", () => {
-    expect(controlsSource).toContain("if (nextCollapsed) setColorsOpen(false)");
-    expect(controlsSource).not.toContain("useLocation");
-    expect(controlsSource).not.toContain("useSearchParams");
-    expect(controlsSource).not.toContain("usePublicConfig");
   });
 
   it("keeps mini cards observer-free and URL-encodes their detail route", () => {

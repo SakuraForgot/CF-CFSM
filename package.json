@@ -1,7 +1,7 @@
 {
   "name": "cfsm-theme-cloud",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "description": "Cloudflare console style CFSM theme built with Kumo, based on CFSM-SAO",
   "scripts": {

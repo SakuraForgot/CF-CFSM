@@ -7,7 +7,6 @@ import { ConsoleTabs } from "@/components/ui/ConsoleTabs";
 import { SelectionPanel } from "@/components/ui/SelectionPanel";
 import { CloudOverview } from "./CloudOverview";
 import { Flag } from "@/components/ui/Flag";
-import { DraggableCostBall } from "@/components/node/DraggableCostBall";
 import { useAuth } from "@/hooks/useAuth";
 import {
   useAllNodeMeta,
@@ -18,7 +17,6 @@ import { useHomepagePingOverview } from "@/hooks/usePingOverview";
 import { useThemeSettings } from "@/hooks/useThemeSettings";
 import { useViewMode } from "@/hooks/useViewMode";
 import { calculateCostSummary, getExchangeRates } from "@/utils/cost";
-import { getOverviewRating } from "@/utils/overviewRating";
 import { useHiddenNodeUuids } from "@/hooks/useVisibleNodes";
 import {
   getHomeGroupLabel,
@@ -254,22 +252,10 @@ export function NodeGrid() {
   const hasNodes = visibleMeta.length > 0;
   const loggedIn = Boolean(me?.logged_in);
   const canAccessAssets = loggedIn || themeSettings.showPriceForGuests;
-  // 资产总值卡片默认保持开启（展示与访客保密统一由 showPriceForGuests 控制）
-  const showAssetCard = showHomeOverview && hasNodes && canAccessAssets;
-  const showCostDetailButton =
-    showAssetCard &&
-    themeSettings.isReady &&
-    themeSettings.showCostSummary &&
-    canAccessAssets;
-  const showCostFloatingButton =
-    themeSettings.isReady &&
-    themeSettings.showCostSummaryFloatingButton &&
-    hasNodes &&
-    canAccessAssets &&
-    !showCostDetailButton;
+  const showCostDetailButton = themeSettings.isReady && themeSettings.showCostSummary && hasNodes && canAccessAssets;
 
   useEffect(() => {
-    if (!showCostDetailButton && !showCostFloatingButton) return;
+    if (!showCostDetailButton) return;
 
     const idleWindow = window as IdleCapableWindow;
     if (idleWindow.requestIdleCallback) {
@@ -282,17 +268,16 @@ export function NodeGrid() {
     // Safari 等无 requestIdleCallback 的浏览器，在首页稳定后再低优先级预取。
     const handle = window.setTimeout(preloadAssetsPage, 1_000);
     return () => window.clearTimeout(handle);
-  }, [showCostDetailButton, showCostFloatingButton]);
+  }, [showCostDetailButton]);
 
-  // 资产入口存在时预热汇率，供概览、价格排序和资产页复用。
-  const costNeeded = showAssetCard || showCostFloatingButton;
+  // 仅在按价格排序时预热汇率，资产页自行获取所需数据。
   const rateQuery = useQuery({
     queryKey: ["cost-rates", themeSettings.costRateApiUrl],
     queryFn: ({ signal }) =>
       getExchangeRates(themeSettings.costRateApiUrl, { signal }),
     staleTime: 60 * 60 * 1000,
     // 「价格」排序也要汇率换算月化价,即便没显示资产卡也得拉一次;但空列表无需拉。
-    enabled: (costNeeded || sortField === "price") && hasNodes,
+    enabled: sortField === "price" && hasNodes,
     retry: 1,
   });
   const costSummary = useMemo(
@@ -495,10 +480,9 @@ export function NodeGrid() {
     );
   }
 
-  // 资产页悬浮入口 + 首页概览卡在「空节点」与正常两个分支里完全一致，提取一次复用。
+  // 首页概览在空节点与正常列表中共用。
   const homeHeader = (
     <>
-      {showCostFloatingButton && <DraggableCostBall />}
       {showHomeOverview && <CloudOverview overview={overview} nodes={visibleNodes.map((node) => ({
         uuid: node.uuid, name: nameByUuid.get(node.uuid) ?? node.uuid, online: node.online,
       }))} />}
@@ -620,11 +604,6 @@ export function NodeGrid() {
           </span>
           {showCostDetailButton && (
             <Link to="/assets">
-              {themeSettings.showOverviewRatings &&
-              themeSettings.showAssetRating &&
-              costSummary
-                ? `${getOverviewRating({ kind: "asset", value: costSummary.remainingCny, customLabels: themeSettings.assetRatingLabels }).label} · `
-                : ""}
               查看资产概览 →
             </Link>
           )}

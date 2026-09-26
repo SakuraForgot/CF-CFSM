@@ -6,7 +6,6 @@ import { Flag } from "@/components/ui/Flag";
 import { OsLogo } from "@/components/ui/OsLogo";
 import { useNodeCardModel } from "@/hooks/useNodeCardModel";
 import { usePreferences } from "@/hooks/usePreferences";
-import { useMetricColorsVersion } from "@/hooks/useMetricColors";
 import { formatBytes } from "@/utils/format";
 import { speedRateColor } from "@/utils/metricTone";
 import { CanvasStrip, fillRoundedRect, safeCanvasColor } from "./CanvasStrip";
@@ -226,8 +225,7 @@ function ListLatency({
 
 const NodeRow = memo(function NodeRow({ uuid }: { uuid: string }) {
   const { resolvedAppearance } = usePreferences();
-  const colorsVersion = useMetricColorsVersion();
-  const redrawKey = `${resolvedAppearance}:${colorsVersion}`;
+  const redrawKey = resolvedAppearance;
   const model = useNodeCardModel(uuid, {
     pingBucketCount: HOMEPAGE_PING_BUCKET_COUNT,
   });

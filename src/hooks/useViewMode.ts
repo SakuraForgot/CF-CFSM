@@ -216,6 +216,15 @@ export function useViewMode() {
   };
 }
 
+/** A settings-page choice replaces the old quick-switch override for that device. */
+export function resetViewModeOverrides(device?: ViewModeDevice) {
+  for (const target of device ? [device] : ["desktop", "mobile"] as const) {
+    clearOverride(getOverrideKey(target));
+  }
+  refreshSnapshot();
+  emit();
+}
+
 // 给用不了 hook 的场景做非响应式读取（如 class ErrorBoundary 的诊断）。返回
 // device + 任意 session override；不含主题默认值，因为解析它需要 themeSettings（一个
 // hook），但 device + override 在常见情况下已能区分 compact 和 large。

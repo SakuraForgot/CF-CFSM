@@ -1,5 +1,5 @@
 import { useMemo, useSyncExternalStore } from "react";
-import { pickPaletteSettings } from "@/hooks/useMetricColors";
+import { omitRetiredThemeOptions } from "@/utils/consoleSettings";
 import { useAllPingLineOverrides } from "@/hooks/usePingOverview";
 import { usePublicConfig } from "@/hooks/usePublicConfig";
 import { useLocalThemeSettings } from "@/hooks/useThemeSettings";
@@ -42,14 +42,8 @@ export interface SiteThemeOptionsSources {
 }
 
 /**
- * 「复制配置 JSON」与登录站长自动同步到后端发出去的站点快照，口径只在这里定：
- *
- * 1. 主题设置白名单（normalizeThemeSettings）：站点 → 本机 → 草稿逐层盖，默认外观先垫后台的设置；
- * 2. 卡片上换过的线路按行并进 `homepagePingLineOverrides`；
- * 3. 配色逐个颜色叠（pickPaletteSettings），不能跟着第 1 条整键盖。
- *
- * 取色器的「保存到后端」早先自己拼了一份：没垫后台默认外观 —— 主题设置里没写默认外观时写成了
- * 「跟随系统」，把后台设的深色 / 浅色对所有访客盖掉；也没带卡片上换的线路。
+ * Merge site, local and draft preferences, preserving per-node line selections.
+ * Retired SAO presentation fields are excluded from new snapshots.
  */
 export function buildSiteThemeOptions({
   siteSettings,
@@ -66,14 +60,13 @@ export function buildSiteThemeOptions({
     }) as ThemeSettings & Record<string, unknown>,
   );
   return {
-    ...normalized,
+    ...omitRetiredThemeOptions(normalized),
     // 本机换过的行压过站点已存的那份（见 mergePingLineOverridesByNode）。
     homepagePingLineOverrides: mergePingLineOverridesByNode(
       normalized.homepageMultiPingTaskIds,
       normalized.homepagePingLineOverrides,
       localLineOverrides,
     ),
-    ...pickPaletteSettings(siteSettings, localSettings),
   };
 }
 

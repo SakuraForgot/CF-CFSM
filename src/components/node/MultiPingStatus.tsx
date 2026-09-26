@@ -1,6 +1,5 @@
 import { memo, useState } from "react";
 import { clsx } from "clsx";
-import { useMetricColorsVersion } from "@/hooks/useMetricColors";
 import { usePreferences } from "@/hooks/usePreferences";
 import type { HomepagePingDisplayLine } from "@/types/cfsm";
 import { latencyHeatColor, lossHeatColor } from "@/utils/metricTone";
@@ -170,8 +169,7 @@ export const MultiPingStatus = memo(function MultiPingStatus({
   className?: string;
 }) {
   const { resolvedAppearance } = usePreferences();
-  const colorsVersion = useMetricColorsVersion();
-  const redrawKey = `${resolvedAppearance}:${colorsVersion}`;
+  const redrawKey = resolvedAppearance;
 
   return (
     <div

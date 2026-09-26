@@ -244,9 +244,17 @@ export function usePreferences() {
     commit({ appearance: a });
   }, []);
 
+  const resetAppearance = useCallback((defaultAppearance: Appearance) => {
+    hasExplicitAppearancePreference = false;
+    try { localStorage.removeItem(APPEARANCE_STORAGE_KEY); } catch {}
+    persistDefaultAppearance(defaultAppearance);
+    commit({ appearance: defaultAppearance });
+  }, []);
+
   return {
     appearance: state.appearance,
     resolvedAppearance: state.resolvedAppearance,
     setAppearance,
+    resetAppearance,
   };
 }
