@@ -1,0 +1,204 @@
+import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useParams, Link } from "react-router-dom";
+import { ConsoleTabs } from "@/components/ui/ConsoleTabs";
+import { SelectionPanel } from "@/components/ui/SelectionPanel";
+import { ChevronLeft } from "lucide-react";
+import "uplot/dist/uPlot.min.css";
+import { InstanceDetails } from "@/components/instance/InstanceDetails";
+import { PingChart } from "@/components/instance/PingChart";
+import { LoadChart } from "@/components/instance/LoadChart";
+import { Spinner } from "@/components/ui/Spinner";
+import {
+  buildLoadTimeRangeOptions,
+  buildPingTimeRangeOptions,
+} from "@/components/instance/chartShared";
+import { useAuth } from "@/hooks/useAuth";
+import { useNodeMeta, useNodeStoreStatus, useRealtimeFocus } from "@/hooks/useNode";
+import { useThemeSettings } from "@/hooks/useThemeSettings";
+import { ANONYMOUS_MAX_HISTORY_HOURS } from "@/services/api";
+
+// 1 小时：详情页每打开一次就是一趟 /api/history/all 全量行，默认档位越短后端读的行越少。
+const DEFAULT_PING_HOURS = 1;
+// 负载图默认停在「1 小时」：默认发起的就是 hours=1 这一档，选中的按钮也应是「1 小时」，
+// 别默认到「实时」却偷偷请求 hours=1（实时档真正的请求窗口见 LoadChart 的 REALTIME_HISTORY_HOURS）。
+const DEFAULT_LOAD_HOURS = 1;
+/** `/api/history/all` 的 hours 上限。 */
+const MAX_HISTORY_HOURS = 168;
+type TimeRangeOption = ReturnType<typeof buildLoadTimeRangeOptions>[number];
+
+function RangeSelector({
+  ranges,
+  value,
+  onChange,
+}: {
+  ranges: TimeRangeOption[];
+  value: number;
+  onChange: (value: number) => void;
+}) {
+  return (
+    <ConsoleTabs
+      label="历史时间范围"
+      className="cf-range-tabs"
+      value={String(value)}
+      onValueChange={(next) => onChange(Number(next))}
+      items={ranges.map((range) => ({ value: String(range.value), label: range.label }))}
+    />
+  );
+}
+
+export function Instance() {
+  const { uuid } = useParams<{ uuid: string }>();
+  const { data: me } = useAuth();
+  const themeSettings = useThemeSettings();
+  const meta = useNodeMeta(uuid ?? "");
+  const storeStatus = useNodeStoreStatus(Boolean(uuid));
+  // 详情页只订阅这一台的实时推送（后端文档：详情页不要订阅全量再在前端过滤）。
+  useRealtimeFocus(uuid);
+  const [chartType, setChartType] = useState<"load" | "ping">("load");
+  const [loadHours, setLoadHours] = useState(DEFAULT_LOAD_HOURS);
+  const [pingHours, setPingHours] = useState(DEFAULT_PING_HOURS);
+  const chartControlsRef = useRef<HTMLDivElement | null>(null);
+
+  // 后端最长支持 7 天；未登录访客查询超过 24 小时会被拒绝，所以直接不显示更长的档位。
+  const maxHistoryHours = me?.logged_in
+    ? MAX_HISTORY_HOURS
+    : ANONYMOUS_MAX_HISTORY_HOURS;
+
+  const loadRanges = useMemo(
+    () => buildLoadTimeRangeOptions(maxHistoryHours),
+    [maxHistoryHours],
+  );
+  const pingRanges = useMemo(
+    () => buildPingTimeRangeOptions(maxHistoryHours),
+    [maxHistoryHours],
+  );
+  const showPingChart = themeSettings.isReady && themeSettings.showPingChart;
+
+  const alignCharts = useCallback(() => {
+    const frame = window.requestAnimationFrame(() => {
+      const element = chartControlsRef.current;
+      if (!element) return;
+      const rect = element.getBoundingClientRect();
+      if (rect.top >= 0 && rect.top < window.innerHeight) return;
+      element.scrollIntoView({ behavior: "auto", block: "start" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
+  useEffect(() => {
+    if (!loadRanges.some((range) => range.value === loadHours)) {
+      setLoadHours(
+        loadRanges.find((range) => range.value === DEFAULT_LOAD_HOURS)?.value ??
+          loadRanges[0]?.value ??
+          DEFAULT_LOAD_HOURS,
+      );
+    }
+  }, [loadHours, loadRanges]);
+
+  useEffect(() => {
+    if (!pingRanges.some((range) => range.value === pingHours)) {
+      setPingHours(
+        pingRanges.find((range) => range.value === DEFAULT_PING_HOURS)?.value ??
+          pingRanges[0]?.value ??
+          DEFAULT_PING_HOURS,
+      );
+    }
+  }, [pingHours, pingRanges]);
+
+  useEffect(() => {
+    if (!showPingChart && chartType === "ping") {
+      setChartType("load");
+    }
+  }, [chartType, showPingChart]);
+
+  if (!uuid) return null;
+
+  if (!meta) {
+    const message = storeStatus.hydrated
+      ? "找不到这个实例，它可能已被删除或链接无效。"
+      : storeStatus.nodeInfoError
+        ? "节点列表加载失败，系统正在自动重试。"
+        : null;
+    return (
+      <div className="flex flex-col gap-5 py-2">
+        <Link to="/" className="instance-page-back">
+          <ChevronLeft size={14} />
+          返回
+        </Link>
+        <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3 text-center">
+          {message ? (
+            <>
+              <div className="text-[15px] font-semibold text-(--text-primary)">
+                {storeStatus.hydrated ? "实例不存在" : "暂时无法加载实例"}
+              </div>
+              <p className="text-[13px] text-(--text-secondary)">{message}</p>
+            </>
+          ) : (
+            <Spinner size={24} label="正在加载实例" />
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-5 py-2">
+      <Link
+        to="/"
+        className="instance-page-back"
+      >
+        <ChevronLeft size={14} />
+        返回
+      </Link>
+      <InstanceDetails uuid={uuid} onNodeReady={alignCharts} />
+      <div ref={chartControlsRef} className="instance-chart-controls">
+        <ConsoleTabs
+          label="监控图表"
+          className="cf-chart-tabs"
+          value={chartType}
+          onValueChange={(next) => startTransition(() => setChartType(next as "load" | "ping"))}
+          items={[
+            { value: "load", label: "负载" },
+            ...(showPingChart ? [{ value: "ping", label: "Ping" }] : []),
+          ]}
+        />
+        {chartType === "load" && (
+          <RangeSelector
+            ranges={loadRanges}
+            value={loadHours}
+            onChange={(value) => startTransition(() => setLoadHours(value))}
+          />
+        )}
+        {chartType === "ping" && showPingChart && (
+          <RangeSelector
+            ranges={pingRanges}
+            value={pingHours}
+            onChange={(value) => startTransition(() => setPingHours(value))}
+          />
+        )}
+      </div>
+      <SelectionPanel className="instance-chart-stage" selectionKey={chartType}>
+        <div
+          className="instance-chart-view"
+          hidden={chartType !== "load"}
+          aria-hidden={chartType !== "load"}
+        >
+          <LoadChart uuid={uuid} hours={loadHours} active={chartType === "load"} />
+        </div>
+        <div
+          className="instance-chart-view"
+          hidden={chartType !== "ping"}
+          aria-hidden={chartType !== "ping"}
+        >
+          {showPingChart ? (
+            <PingChart
+              uuid={uuid}
+              hours={pingHours}
+              active={chartType === "ping"}
+            />
+          ) : null}
+        </div>
+      </SelectionPanel>
+    </div>
+  );
+}

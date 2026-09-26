@@ -1,0 +1,134 @@
+import { Outlet, useLocation } from "react-router-dom";
+import { ConsoleNavigation } from "./ConsoleNavigation";
+import { Lock } from "lucide-react";
+import { BackgroundLayer } from "./BackgroundLayer";
+import { TurnstileGate } from "./TurnstileGate";
+import { SiteFooter } from "./SiteFooter";
+import { RealtimeSessionPrompt } from "./RealtimeSessionPrompt";
+import { SiteThemeSyncNotice } from "./SiteThemeSyncNotice";
+import { Spinner } from "@/components/ui/Spinner";
+import { useAppearance } from "@/hooks/useAppearance";
+import { useAuth } from "@/hooks/useAuth";
+import { usePublicConfig } from "@/hooks/usePublicConfig";
+import { useSiteMetadata, readStoredSiteMetadata } from "@/hooks/useSiteMetadata";
+import { useTurnstileVerificationRequired } from "@/hooks/useTurnstileVerification";
+import { useMetricColorsSync } from "@/hooks/useMetricColors";
+import { useNodeStoreStatus } from "@/hooks/useNode";
+import { getAdminUrl } from "@/services/cfsm/config";
+import { HomeSkeleton } from "./HomeSkeleton";
+
+export function AppShell() {
+  useAppearance();
+  useSiteMetadata();
+  useMetricColorsSync();
+  const { pathname, search } = useLocation();
+  const publicConfig = usePublicConfig();
+  const auth = useAuth();
+  const cachedMeta = readStoredSiteMetadata();
+  const siteName =
+    publicConfig.data?.sitename?.trim() ||
+    cachedMeta.siteName ||
+    (publicConfig.isPending ? "" : "CF-Server-Monitor");
+  const needsVerification = useTurnstileVerificationRequired();
+  const normalizedPath = (pathname.replace(/\/+$/, "") || "/").toLowerCase();
+  const isDataRoute =
+    normalizedPath === "/" ||
+    normalizedPath === "/assets" ||
+    normalizedPath.startsWith("/server/") ||
+    normalizedPath.startsWith("/instance/");
+  const isCheckingAccess =
+    isDataRoute &&
+    (publicConfig.isPending ||
+      (publicConfig.data?.private_site === true && auth.isPending));
+  const accessError = isDataRoute && publicConfig.isError && !publicConfig.data;
+  const isPrivateVisitor =
+    isDataRoute &&
+    publicConfig.data?.private_site === true &&
+    !auth.isPending &&
+    auth.data?.logged_in !== true;
+  const awaitingVerification = isDataRoute && needsVerification;
+  const isHomeDashboard =
+    normalizedPath === "/" && new URLSearchParams(search).get("view") !== "theme-manage";
+  const canHydrateHome =
+    isHomeDashboard &&
+    !isCheckingAccess &&
+    !accessError &&
+    !awaitingVerification &&
+    !isPrivateVisitor;
+  const homeStoreStatus = useNodeStoreStatus(canHydrateHome);
+  const isCheckingHomeData =
+    canHydrateHome && !homeStoreStatus.hydrated && !homeStoreStatus.nodeInfoError;
+  const isCheckingShell = isCheckingAccess || isCheckingHomeData;
+
+  return (
+    <div className="cf-console relative flex min-h-screen flex-col">
+      <BackgroundLayer />
+      <TurnstileGate />
+      <ConsoleNavigation siteName={siteName} />
+      <main id="main-content" tabIndex={-1} className="app-main flex-1 px-3 pb-8 pt-6 sm:px-5 md:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-430">
+          {isCheckingShell ? (
+            isHomeDashboard && !isPrivateVisitor ? (
+              <HomeSkeleton />
+            ) : (
+              <div className="flex min-h-[60vh] items-center justify-center">
+                <Spinner size={24} />
+              </div>
+            )
+          ) : accessError ? (
+            <AccessError onRetry={() => void publicConfig.refetch()} />
+          ) : awaitingVerification ? (
+            <div className="min-h-[60vh]" aria-hidden />
+          ) : isPrivateVisitor ? (
+            <PrivateSiteGate />
+          ) : (
+            <Outlet />
+          )}
+        </div>
+      </main>
+      <SiteFooter />
+      <RealtimeSessionPrompt />
+      <SiteThemeSyncNotice />
+    </div>
+  );
+}
+
+function AccessError({ onRetry }: { onRetry: () => void }) {
+  return (
+    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
+      <div className="space-y-2">
+        <div className="text-[15px] font-semibold text-(--text-primary)">
+          无法读取站点配置
+        </div>
+        <p className="text-[13px] text-(--text-secondary)">请检查网络后重试。</p>
+      </div>
+      <button type="button" onClick={onRetry} className="control-button px-4 py-2 text-[13px] font-medium">
+        重试
+      </button>
+    </div>
+  );
+}
+
+function PrivateSiteGate() {
+  return (
+    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
+      <div className="grid h-12 w-12 place-items-center rounded-full bg-(--surface-elev) text-(--text-tertiary)">
+        <Lock size={22} strokeWidth={2} />
+      </div>
+      <div className="space-y-2">
+        <div className="text-[15px] font-semibold text-(--text-primary)">站点已设为私有</div>
+        <p className="max-w-lg text-[13px] text-(--text-secondary)">
+          登录后即可查看节点数据。
+        </p>
+      </div>
+      <a
+        href={getAdminUrl()}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="control-button px-4 py-2 text-[13px] font-medium"
+      >
+        前往登录
+      </a>
+    </div>
+  );
+}

@@ -1,0 +1,1044 @@
+/* Kumo semantic surfaces + Cloudflare orange. Legacy tokens keep SAO detail components compatible. */
+:root,
+:root[data-appearance="light"] {
+  --bg-0: #f9f9f9;
+  --surface-bg: #f9f9f9;
+  --surface: #fff;
+  --surface-elev: #f4f4f4;
+  --surface-sunken: #f7f7f7;
+  --border: #e4e4e4;
+  --border-subtle: #ededed;
+  --border-strong: #d1d1d1;
+  --hairline: #ebebeb;
+  --text-primary: #242424;
+  --text-secondary: #626262;
+  --text-tertiary: #737373;
+  --accent-500: #e46c12;
+  --accent-strong: #bd510b;
+  --accent: #e46c12;
+  --ring: #f6821f60;
+  --cf-orange: #f6821f;
+  --cf-selected: #fff2e6;
+  --cf-selected-text: #a84809;
+  --cf-blue: #2563eb;
+  --progress-cpu: #f6821f;
+  --progress-memory: #2563eb;
+  --progress-disk: #8b5cf6;
+  --status-success: #15875a;
+  --status-online: #15875a;
+  --status-warning: #b86c10;
+  --hover-bg: #f5f5f5;
+  --shadow: none;
+  --canvas-glow: none;
+  --bg-card: var(--surface);
+  --bg-surface: var(--surface-elev);
+}
+:root[data-appearance="dark"] {
+  --bg-0: #101010;
+  --surface-bg: #101010;
+  --surface: #191919;
+  --surface-elev: #222;
+  --surface-sunken: #141414;
+  --border: #333;
+  --border-subtle: #292929;
+  --border-strong: #494949;
+  --hairline: #2d2d2d;
+  --text-primary: #eee;
+  --text-secondary: #b4b4b4;
+  --text-tertiary: #999;
+  --accent-500: #fb923c;
+  --accent-strong: #f6821f;
+  --accent: #fb923c;
+  --ring: #f6821f80;
+  --cf-selected: #342416;
+  --cf-selected-text: #ffab64;
+  --cf-blue: #78a4ff;
+  --status-success: #4dbe8b;
+  --status-online: #4dbe8b;
+  --status-warning: #f2b451;
+  --hover-bg: #262626;
+  --bg-card: var(--surface);
+  --bg-surface: var(--surface-elev);
+}
+.cf-console {
+  --cf-sidebar-width: 216px;
+  padding-top: 60px;
+}
+.cf-console button,
+.cf-console input,
+.cf-console select {
+  font-size: 13px;
+}
+.cf-console [data-kumo-component="button"] {
+  font-size: 13px;
+}
+.cf-topbar {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 60;
+  padding-right: 24px;
+}
+.cf-brand {
+  width: var(--cf-sidebar-width);
+  flex-shrink: 0;
+  padding: 0 22px;
+}
+.cf-brand-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 19px;
+  font-weight: 750;
+  letter-spacing: -0.5px;
+  white-space: nowrap;
+}
+.cf-brand-link svg {
+  color: var(--cf-orange);
+}
+.cf-brand-light {
+  font-weight: 450;
+}
+.cf-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  min-width: 0;
+  padding-left: 28px;
+}
+.cf-breadcrumb > span {
+  max-width: 260px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cf-breadcrumb strong {
+  color: var(--text-primary);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.cf-top-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding-left: 16px;
+}
+.cf-doc-link {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.cf-avatar {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  background: var(--cf-selected);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--cf-selected-text);
+  font-size: 11px;
+  font-weight: 650;
+}
+.cf-sidebar {
+  position: fixed;
+  inset: 60px auto 0 0;
+  width: var(--cf-sidebar-width);
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+  z-index: 55;
+  display: flex;
+  flex-direction: column;
+  padding: 22px 12px 16px;
+  overflow-y: auto;
+}
+.cf-workspace {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 0 8px 26px;
+}
+.cf-workspace-icon {
+  width: 33px;
+  height: 33px;
+  display: grid;
+  place-items: center;
+  background: var(--surface-elev);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+}
+.cf-workspace strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+}
+.cf-workspace span {
+  font-size: 10px;
+  color: var(--text-tertiary);
+}
+.cf-nav-label {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  padding: 0 12px 10px;
+  letter-spacing: 0.6px;
+}
+.cf-sidebar nav {
+  display: grid;
+  gap: 5px;
+  margin-bottom: 28px;
+}
+.cf-sidebar nav a {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  border: 1px solid transparent;
+}
+.cf-sidebar nav a:hover {
+  background: var(--hover-bg);
+  color: var(--text-primary);
+}
+.cf-sidebar nav a.is-active {
+  color: var(--cf-selected-text);
+  background: var(--cf-selected);
+  border-color: color-mix(in srgb, var(--cf-orange) 12%, transparent);
+  font-weight: 600;
+}
+.cf-nav-external {
+  margin-left: auto;
+}
+.cf-sidebar-bottom {
+  margin-top: auto;
+  padding: 12px 10px 0;
+}
+.cf-sidebar-bottom > a {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.cf-sidebar-signature {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 23px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 9px;
+  color: var(--text-tertiary);
+}
+.cf-sidebar-signature svg {
+  color: var(--cf-orange);
+}
+.cf-console .app-main {
+  margin-left: var(--cf-sidebar-width);
+  padding: 30px 32px 20px;
+  min-width: 0;
+}
+.cf-console .app-main > div {
+  max-width: 1500px;
+}
+.cf-footer {
+  margin-left: var(--cf-sidebar-width);
+  padding: 0 32px 24px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 10px;
+  color: var(--text-tertiary);
+}
+.cf-footer a:hover {
+  color: var(--cf-selected-text);
+  text-decoration: underline;
+}
+.cf-page-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.cf-eyebrow {
+  font-size: 9px;
+  font-weight: 550;
+  letter-spacing: 1.4px;
+  color: var(--text-tertiary);
+  margin-bottom: 9px;
+}
+.cf-page-heading h1 {
+  font-size: 26px;
+  line-height: 1.4;
+  font-weight: 630;
+  margin: 0;
+  letter-spacing: -0.6px;
+}
+.cf-page-heading p {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.cf-page-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.cf-primary-link {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  min-height: 36px;
+  padding: 8px 13px;
+  border-radius: 8px;
+}
+.cf-context-line {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 22px 0 18px;
+  font-size: 10px;
+  color: var(--text-tertiary);
+  flex-wrap: wrap;
+}
+.cf-context-line > span + span {
+  border-left: 1px solid var(--border-strong);
+  padding-left: 12px;
+}
+.cf-connection {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--status-success);
+}
+.cf-connection i,
+.cf-status-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+.cf-connection.is-warning {
+  color: var(--status-warning);
+}
+.cf-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+.cf-metric {
+  background: var(--surface-a);
+  padding: 18px 20px 15px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  min-width: 0;
+  box-shadow: 0 1px 2px #00000003;
+}
+.cf-metric-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.cf-metric-label svg {
+  color: var(--text-tertiary);
+}
+.cf-metric-value {
+  font-size: clamp(24px, 2.2vw, 31px);
+  font-weight: 560;
+  letter-spacing: -1px;
+  line-height: 1.3;
+  margin-top: 14px;
+  white-space: nowrap;
+}
+.cf-metric-value span {
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--text-tertiary);
+  margin-left: 6px;
+}
+.cf-meter {
+  height: 3px;
+  border-radius: 3px;
+  background: var(--surface-elev);
+  overflow: hidden;
+  margin-top: 16px;
+}
+.cf-meter i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--cf-orange);
+  transition: width 0.4s;
+}
+.cf-meter.green i {
+  background: var(--status-success);
+}
+.cf-meter.blue i {
+  background: #3b82f6;
+}
+.cf-meter.purple i {
+  background: #9771da;
+}
+.cf-metric p {
+  font-size: 10px;
+  margin: 9px 0 0;
+  color: var(--text-tertiary);
+}
+.cf-insights {
+  display: grid;
+  grid-template-columns: minmax(0, 2.1fr) minmax(240px, 1fr);
+  gap: 16px;
+  margin: 18px 0 24px;
+}
+.cf-panel {
+  background: var(--surface-a);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.cf-panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 18px;
+  border-bottom: 1px solid var(--border-subtle);
+  gap: 10px;
+}
+.cf-panel-heading h2,
+.cf-server-heading h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  margin: 0;
+}
+.cf-panel-heading > span {
+  font-size: 9px;
+  color: var(--text-tertiary);
+}
+.cf-panel-caption {
+  padding: 10px 18px;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 9px;
+  color: var(--text-tertiary);
+}
+.cf-chart {
+  padding: 16px 18px 4px;
+  position: relative;
+}
+.cf-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22px;
+  font-size: 10px;
+  margin-bottom: 10px;
+  color: var(--text-secondary);
+}
+.cf-chart-legend span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.cf-chart-legend strong {
+  font-weight: 550;
+  color: var(--text-primary);
+  margin-left: 4px;
+}
+.cf-chart-legend i {
+  height: 6px;
+  width: 6px;
+  border-radius: 2px;
+}
+.cf-chart-legend .is-up {
+  background: #f6821f;
+}
+.cf-chart-legend .is-down {
+  background: #2563eb;
+}
+.cf-chart > svg {
+  display: block;
+  width: 100%;
+  height: 170px;
+  overflow: visible;
+}
+.cf-chart text {
+  fill: var(--text-tertiary);
+  font-size: 8px;
+  font-family: var(--font-numeric);
+}
+.cf-chart-grid {
+  stroke: var(--border-subtle);
+  stroke-dasharray: 3 4;
+}
+.cf-chart-waiting {
+  position: absolute;
+  top: 55%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: 11px;
+}
+.cf-health-panel {
+  padding-bottom: 15px;
+}
+.cf-tag {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 6px;
+  background: var(--surface-elev);
+}
+.cf-health-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--status-success);
+  font-weight: 550;
+  font-size: 12px;
+  margin: 22px 18px 18px;
+}
+.cf-health-status.is-warning {
+  color: var(--status-warning);
+}
+.cf-health-blocks {
+  margin: 0 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.cf-health-blocks i {
+  flex: 1 1 5px;
+  min-width: 5px;
+  max-width: 38px;
+  height: 25px;
+  border-radius: 3px;
+  background: var(--border);
+}
+.cf-health-blocks .is-online,
+.cf-health-legend i {
+  background: var(--status-success);
+}
+.cf-health-blocks .is-offline,
+.cf-health-legend .is-offline {
+  background: #a3a3a3;
+}
+.cf-health-blocks .is-unknown {
+  background: var(--status-warning);
+}
+.cf-health-legend {
+  margin: 10px 18px 17px;
+  display: flex;
+  gap: 14px;
+  font-size: 9px;
+  color: var(--text-tertiary);
+}
+.cf-health-legend span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.cf-health-legend i {
+  width: 5px;
+  height: 5px;
+  border-radius: 1px;
+}
+.cf-health-details {
+  margin: 0 18px 14px;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 10px;
+}
+.cf-health-details div {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  margin: 7px 0;
+  gap: 10px;
+}
+.cf-health-details dt {
+  color: var(--text-secondary);
+}
+.cf-health-details dd {
+  font-weight: 550;
+}
+.cf-inline-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: var(--cf-blue);
+  margin: 0 18px;
+}
+.cf-console .mao-cluster-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0 18px;
+  margin: 0 0 20px;
+  background: var(--surface-a);
+  box-shadow: none;
+  scroll-margin-top: 80px;
+}
+.cf-server-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 19px 0 16px;
+}
+.cf-server-heading h2 {
+  font-size: 14px;
+}
+.cf-server-heading p {
+  color: var(--text-tertiary);
+  font-size: 10px;
+  margin: 7px 0 0;
+}
+.cf-count {
+  background: var(--surface-elev);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 10px;
+  min-width: 22px;
+  text-align: center;
+  padding: 1px 5px;
+}
+.cf-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 16px;
+}
+.cf-search {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 300px;
+  max-width: 100%;
+  height: 33px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  padding: 0 10px;
+  color: var(--text-tertiary);
+}
+.cf-search input {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  border: none;
+  background: none;
+  outline: none;
+  color: var(--text-primary);
+  font-size: 11px;
+}
+.cf-search:focus-within {
+  outline: 2px solid var(--ring);
+  border-color: var(--cf-orange);
+}
+.cf-filter-bar select {
+  min-height: 33px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  padding: 0 28px 0 10px;
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+.cf-filter-bar > :last-child:not(select) {
+  margin-left: auto;
+}
+.cf-console .home-controls-bar {
+  display: block;
+  margin-bottom: 12px;
+}
+.cf-console .home-region-bar {
+  margin: 0 0 14px;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  border: none;
+}
+.cf-console .home-region-chip {
+  min-height: 26px;
+  padding: 3px 7px;
+  font-size: 10px;
+  border-radius: 4px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+}
+.cf-console .node-list-scroll,
+.cf-console .node-list {
+  border-radius: 5px;
+}
+.cf-console .node-list {
+  min-width: 970px;
+}
+.cf-console .node-list-row {
+  grid-template-columns: minmax(160px, 2fr) minmax(94px, 1.1fr) repeat(
+      3,
+      minmax(65px, 0.8fr)
+    ) minmax(58px, 0.7fr) minmax(78px, 0.9fr) minmax(100px, 1.1fr) minmax(
+      64px,
+      0.8fr
+    ) minmax(86px, 0.9fr);
+  gap: 8px;
+  min-height: 68px;
+  padding: 10px 12px;
+}
+.cf-console .node-list-head {
+  min-height: 35px;
+  background: var(--surface-sunken);
+  font-size: 10px;
+}
+.cf-table-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--text-tertiary);
+  padding: 13px 0;
+}
+.cf-table-footer a {
+  color: var(--cf-blue);
+}
+.cf-console
+  :is(
+    .node-card,
+    .compact-node-card,
+    .mini-node-card,
+    .surface,
+    .surface-elevated
+  ) {
+  border-radius: 8px;
+  box-shadow: none;
+  border-color: var(--border);
+}
+.cf-console .control-button {
+  border-radius: 6px;
+  box-shadow: 0 1px 2px #00000005;
+}
+.cf-console
+  :is(
+    .instance-panel,
+    .instance-chart-card,
+    .instance-info-group,
+    .surface-inset
+  ) {
+  border-radius: 8px;
+  background: var(--surface-a);
+  box-shadow: none;
+  border-color: var(--border);
+}
+.cf-console .instance-info-group {
+  background: var(--surface-sunken);
+}
+.cf-console .instance-segmented {
+  border-radius: 6px;
+  padding: 4px;
+  gap: 4px;
+}
+.cf-console .instance-segmented button {
+  padding: 7px 12px;
+  font-size: 12px;
+  border-radius: 4px;
+}
+.cf-console .instance-segmented button[aria-pressed="true"] {
+  background: var(--cf-selected);
+  color: var(--cf-selected-text);
+}
+.cf-console .instance-chart-controls {
+  justify-content: flex-start;
+}
+.cf-console .theme-topbar {
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: none;
+}
+.cf-console .app-main {
+  padding-left: max(14px, env(safe-area-inset-left, 0px), min(32px, 2.5vw));
+  padding-right: max(14px, env(safe-area-inset-right, 0px), min(32px, 2.5vw));
+}
+.cf-notice {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--cf-orange);
+  border-radius: 5px;
+  margin: 0 0 16px;
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.cf-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 50px 20px;
+  color: var(--text-tertiary);
+  font-size: 12px;
+}
+.cf-empty strong {
+  color: var(--text-primary);
+}
+.cf-mobile-menu,
+.cf-nav-backdrop {
+  display: none;
+}
+.cf-skip-link {
+  position: fixed;
+  top: -80px;
+  left: 16px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 2px solid var(--cf-orange);
+  z-index: 100;
+}
+.cf-skip-link:focus {
+  top: 8px;
+}
+.cf-console :is(a, button, select):focus-visible {
+  outline: 2px solid var(--cf-orange);
+  outline-offset: 3px;
+}
+.cf-skeleton .cf-metric div,
+.cf-skeleton-title {
+  height: 15px;
+  background: var(--surface-elev);
+  border-radius: 4px;
+  margin: 10px 0;
+}
+.cf-skeleton .cf-metric div:nth-child(2) {
+  width: 65%;
+  height: 32px;
+}
+.cf-skeleton-title {
+  height: 40px;
+  width: 220px;
+  margin-bottom: 32px;
+}
+.cf-skeleton .cf-panel {
+  min-height: 265px;
+}
+.cf-skeleton-table {
+  min-height: 330px;
+}
+@media (min-width: 1550px) {
+  .cf-console .app-main {
+    padding-left: 40px;
+    padding-right: 40px;
+  }
+  .cf-footer {
+    padding-left: 40px;
+    padding-right: 40px;
+  }
+}
+@media (max-width: 1200px) {
+  .cf-console {
+    --cf-sidebar-width: 190px;
+  }
+  .cf-brand {
+    padding: 0 16px;
+  }
+  .cf-console .app-main {
+    padding: 24px 22px 20px;
+  }
+  .cf-metric {
+    padding: 16px 14px;
+  }
+  .cf-insights {
+    grid-template-columns: minmax(0, 1.8fr) minmax(220px, 1fr);
+  }
+  .cf-page-heading h1 {
+    font-size: 24px;
+  }
+  .cf-breadcrumb {
+    padding-left: 22px;
+  }
+}
+@media (max-width: 900px) {
+  .cf-console {
+    --cf-sidebar-width: 0px;
+  }
+  .cf-brand {
+    width: auto;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .cf-brand-link {
+    font-size: 17px;
+  }
+  .cf-brand-link svg {
+    width: 25px;
+  }
+  .cf-console .cf-mobile-menu {
+    display: flex;
+  }
+  .cf-breadcrumb {
+    padding-left: 10px;
+  }
+  .cf-breadcrumb > span {
+    max-width: 130px;
+  }
+  .cf-sidebar {
+    width: 232px;
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition:
+      transform 0.2s,
+      visibility 0.2s;
+  }
+  .cf-sidebar.is-open {
+    transform: translateX(0);
+    visibility: visible;
+  }
+  .cf-nav-backdrop {
+    display: block;
+    position: fixed;
+    inset: 60px 0 0;
+    background: #0005;
+    z-index: 50;
+  }
+  .cf-metrics {
+    gap: 12px;
+  }
+  .cf-footer {
+    padding: 0 22px 20px;
+  }
+}
+@media (max-width: 650px) {
+  .cf-topbar {
+    padding-right: 12px;
+  }
+  .cf-brand {
+    padding: 0 10px;
+  }
+  .cf-top-actions {
+    gap: 6px;
+    padding-left: 4px;
+  }
+  .cf-doc-link,
+  .cf-breadcrumb {
+    display: none;
+  }
+  .cf-console .app-main {
+    padding: 22px 14px 16px;
+  }
+  .cf-page-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .cf-page-heading h1 {
+    font-size: 24px;
+  }
+  .cf-page-actions {
+    width: 100%;
+  }
+  .cf-page-actions > * {
+    flex: 1;
+    justify-content: center;
+  }
+  .cf-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .cf-metric-value {
+    font-size: 25px;
+  }
+  .cf-metric-value span {
+    font-size: 12px;
+  }
+  .cf-metric-label {
+    font-size: 10px;
+  }
+  .cf-context-line {
+    margin: 18px 0 14px;
+    gap: 8px;
+  }
+  .cf-context-line > span + span {
+    padding-left: 8px;
+    font-size: 9px;
+  }
+  .cf-insights {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .cf-chart > svg {
+    height: 160px;
+  }
+  .cf-chart-legend {
+    gap: 12px;
+    font-size: 9px;
+  }
+  .cf-health-details {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .cf-health-details div {
+    gap: 8px;
+  }
+  .cf-console .mao-cluster-card {
+    padding: 0 12px;
+  }
+  .cf-server-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .cf-filter-bar {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .cf-search {
+    width: 100%;
+  }
+  .cf-filter-bar select {
+    flex: 1;
+  }
+  .cf-filter-bar > :last-child:not(select) {
+    margin-left: 0;
+  }
+  .cf-panel-caption {
+    font-size: 8px;
+  }
+  .cf-footer {
+    padding: 0 14px 20px;
+    flex-direction: column;
+    gap: 7px;
+  }
+  .cf-eyebrow {
+    font-size: 8px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cf-console *,
+  .cf-console *::before,
+  .cf-console *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

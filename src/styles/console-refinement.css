@@ -1,0 +1,374 @@
+/* Shared density and motion for the console, including inherited detail views. */
+.cf-console {
+  --cf-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --color-kumo-brand: #0866ff;
+  --cf-control-rail: #f3f3f3;
+  --cf-chart-line: #a8ccff;
+  --cf-frame-fill: rgb(255 255 255 / 58%);
+  --cf-frame-edge: rgb(35 40 48 / 12%);
+  --cf-frame-shadow: rgb(22 28 38 / 15%);
+  font-size: 14px;
+  line-height: 1.5;
+  letter-spacing: 0;
+}
+.cf-console :is(button, input, select, textarea) { font-family: inherit; }
+.cf-console .cf-page-heading h1 { font-size: 26px; font-weight: 600; letter-spacing: -0.35px; }
+.cf-console .cf-brand-link { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
+.cf-console .cf-metric-value { font-size: 26px; font-weight: 600; letter-spacing: -0.45px; }
+.cf-console .cf-metric-value span { font-size: 12px; }
+.cf-console .cf-metric { padding: 16px 18px; }
+.cf-console .cf-metric-label { font-size: 13px; }
+.cf-console .cf-page-heading p { font-size: 14px; line-height: 1.6; }
+.cf-console :is(.cf-eyebrow, .cf-panel-heading > span, .cf-context-line, .cf-panel-caption) { font-size: 11px; }
+.cf-console .cf-eyebrow { font-size: 13px; letter-spacing: 0; font-weight: 600; margin-bottom: 7px; }
+.cf-console :is(.cf-panel-heading h2, .cf-server-heading h2) { font-size: 13px; font-weight: 500; }
+.cf-console .cf-context-line { margin: 18px 0 16px; }
+.cf-console :is(.node-list-name, .node-list-os, .node-list-metric, .node-list-uptime) { font-weight: 500; }
+.cf-console .cf-metric, .cf-console .cf-panel { box-shadow: 0 1px 2px #00000003; }
+.cf-console :is(a, button) {
+  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+.cf-console .cf-primary-link { font-weight: 500; border-radius: 8px; }
+.cf-console :is(.cf-metric, .instance-chart-card):hover { border-color: var(--border-strong); }
+.cf-console .cf-meter i { transition: width 600ms var(--cf-ease); }
+
+/* Route entry is restrained; data and range updates never replay it. */
+@keyframes cf-pane-enter {
+  from { opacity: 0.88; transform: translateY(3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.cf-console .app-main > div > * { animation: cf-pane-enter 360ms var(--cf-ease) both; }
+.cf-console .instance-uplot-wrap .uplot { animation: none; }
+.cf-console .instance-chart-card:hover { transform: none; }
+.cf-console .instance-chart-card::before { display: none; }
+.cf-console :is(.instance-switcher-panel, .home-sort-panel) {
+  border-radius: 7px;
+  box-shadow: 0 4px 16px #00000012, 0 1px 3px #00000008;
+  animation: cf-pane-enter 160ms var(--cf-ease);
+}
+.cf-console :is(.instance-switcher-item, .home-sort-item) { border-radius: 4px; font-weight: 400; }
+.cf-console .instance-chart-tooltip {
+  border-radius: 6px;
+  background: var(--surface);
+  box-shadow: 0 4px 16px #00000014;
+  backdrop-filter: none;
+  transition: opacity 100ms ease;
+}
+
+/* Detail sections share one type scale, without nested rounded-card chrome. */
+.cf-console .instance-panel { padding: 18px 20px; border-radius: 7px; }
+.cf-console .instance-panel-header { margin-bottom: 16px; }
+.cf-console .instance-panel-title { font-size: 14px; font-weight: 500; letter-spacing: 0; }
+.cf-console .instance-panel-description { font-size: 11px; font-weight: 400; }
+.cf-console .instance-info-groups { gap: 0; }
+.cf-console .instance-info-group {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  padding: 0 18px;
+  border-left: 1px solid var(--border-subtle);
+}
+.cf-console .instance-info-group:first-child { padding-left: 0; border-left: 0; }
+.cf-console .instance-info-group:last-child { padding-right: 0; }
+.cf-console .instance-info-group-title { font-weight: 500; font-size: 12px; margin-bottom: 9px; }
+.cf-console .instance-info-item { border: 0; padding: 4px 0; }
+.cf-console :is(.instance-info-label, .instance-info-value) { font-size: 12px; font-weight: 400; line-height: 1.6; letter-spacing: 0; }
+.cf-console .instance-info-label { color: var(--text-tertiary); }
+.cf-console .instance-chart-controls { gap: 16px; justify-content: space-between; scroll-margin-top: 80px; }
+
+.cf-console .instance-chart-stage { min-height: 0; }
+.cf-console .instance-chart-card { padding: 12px; border-radius: 6px; }
+.cf-console :is(.instance-panel-subhead, .instance-series-stats) { font-weight: 400; }
+.cf-console :is(.instance-chart-meta span, .instance-chart-range-chip) {
+  background: none; border: 0; border-radius: 0; padding: 0; min-height: 24px; font-weight: 400;
+}
+.cf-console .instance-chart-meta strong { font-weight: 500; }
+.cf-console .instance-chart-meta span + span { border-left: 1px solid var(--border); padding-left: 8px; }
+
+/* Compact neutral legends: color identifies a line, not every value. */
+.cf-console .instance-ping-toolbar {
+  justify-content: flex-start;
+  gap: 6px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 14px;
+}
+.cf-console .instance-toggle-button {
+  min-height: 28px; padding: 0 8px; border-radius: 5px; font-size: 11px; font-weight: 400;
+}
+.cf-console .instance-toggle-button[data-active="true"] { background: transparent; }
+.cf-console .instance-toggle-button:hover { background: var(--hover-bg); }
+.cf-console .instance-switch-copy { font-size: 11px; }
+.cf-console .instance-switch-state { display: none; }
+.cf-console .instance-switch-track { width: 26px; height: 15px; box-shadow: none; }
+.cf-console .instance-switch-thumb {
+  width: 11px; height: 11px; background: #fff; box-shadow: 0 1px 2px #0002;
+  transition: transform 200ms var(--cf-ease);
+}
+.cf-console .instance-toggle-button[data-active="true"] .instance-switch-track { background: var(--cf-blue); }
+.cf-console .instance-toggle-button[data-active="true"] .instance-switch-thumb { transform: translateX(11px); background: #fff; }
+.cf-console .instance-ping-tasks { gap: 6px 8px; margin-bottom: 16px; }
+.cf-console .instance-ping-task {
+  padding: 5px 8px; gap: 7px; border-radius: 5px; border-color: var(--border-subtle);
+  background: var(--surface); font-size: 11px; font-weight: 400;
+}
+.cf-console .instance-ping-task:hover { background: var(--hover-bg); border-color: var(--border-strong); }
+.cf-console .instance-ping-task-dot { width: 6px; height: 6px; border-radius: 2px; }
+.cf-console :is(.instance-ping-task-name, .instance-ping-task-primary) { font-size: 11px; font-weight: 500; letter-spacing: 0; }
+.cf-console .instance-ping-task-primary { font-variant-numeric: tabular-nums; color: var(--text-primary); }
+.cf-console .instance-ping-task-loss { font-size: 10px; font-weight: 400; color: var(--text-tertiary); }
+.cf-console .instance-ping-task-loss[data-loss="true"] { color: var(--status-warning); }
+.cf-console .instance-ping-task[data-visible="false"] { opacity: 0.45; background: var(--surface-sunken); }
+
+/* The label gutter and track now actually share a row and match the canvas axis. */
+.ping-loss-strip { position: relative; max-width: 100%; margin: 2px 0 14px; }
+.ping-loss-row { display: flex; align-items: center; height: 20px; }
+.ping-loss-label {
+  flex-shrink: 0; font-size: 10px; font-weight: 400; line-height: 16px;
+  color: var(--text-secondary); padding-right: 10px; text-align: right;
+  overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+}
+.ping-loss-row canvas { display: block; flex-shrink: 0; }
+.ping-loss-cursor { position: absolute; top: 0; bottom: 0; border-left: 1px dashed var(--text-tertiary); pointer-events: none; }
+.cf-console .instance-uplot-wrap.is-large { margin-top: 4px; }
+.cf-console .instance-progress-track { height: 4px; box-shadow: none; }
+.cf-console .instance-progress-fill { background: var(--cf-blue); transition: width 500ms var(--cf-ease); }
+
+@media (max-width: 720px) {
+  .cf-console .instance-panel { padding: 14px; }
+  .cf-console .instance-info-group { padding: 12px 0; border-left: 0; border-top: 1px solid var(--border-subtle); }
+  .cf-console .instance-info-group:first-child { padding-top: 0; border-top: 0; }
+  .cf-console .instance-info-group:last-child { padding-bottom: 0; }
+  .cf-console .instance-ping-tasks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cf-console .instance-ping-task { display: grid; grid-template-columns: 6px minmax(0, 1fr); gap: 3px 6px; }
+  .cf-console .instance-ping-task-name { overflow: hidden; text-overflow: ellipsis; }
+  .cf-console .instance-ping-task-primary { grid-column: 2; }
+  .cf-console .instance-ping-task-loss { grid-column: 2; }
+  .cf-console .instance-ping-toolbar { gap: 4px; }
+  .cf-console .instance-chart-controls { gap: 10px; }
+  .cf-console .cf-page-heading h1 { font-size: 24px; }
+  .cf-console .cf-metric-value { font-size: 23px; }
+  .cf-console .cf-metric { padding: 14px; }
+  .cf-console .instance-chart-panel .instance-panel-header { padding-right: 0; }
+}
+/* Kumo selection controls: one scale, one indicator, no legacy per-button pills. */
+.cf-tabs { min-width: 0; max-width: 100%; width: fit-content; }
+.cf-tabs > div { max-width: 100%; }
+.cf-console .cf-tabs [role="tab"] {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: 0;
+  min-width: 44px;
+  margin: 0;
+  padding: 0 12px;
+  color: var(--text-secondary);
+  border: 0;
+  box-shadow: none;
+  transition: color 240ms ease, background-color 240ms ease;
+}
+.cf-console .cf-tabs [role="tab"][aria-selected="true"] { color: var(--text-primary); font-weight: 500; }
+.cf-console .cf-tabs [role="tab"]:hover { color: var(--text-primary); background: transparent; }
+.cf-console .cf-tabs [role="tab"]:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--cf-blue); }
+.cf-console .cf-tabs .cf-tabs-indicator {
+  pointer-events: none;
+  transition: translate 380ms var(--cf-ease), width 380ms var(--cf-ease), height 380ms var(--cf-ease), opacity 240ms ease;
+}
+.cf-tabs[data-variant="segmented"] > div { border-radius: 8px; }
+.cf-tabs[data-variant="segmented"] > div > div:first-child {
+  height: 36px; border-radius: 8px; background: var(--cf-control-rail);
+  box-shadow: inset 0 0 0 1px var(--border-subtle);
+}
+.cf-tabs[data-variant="segmented"] [role="tablist"] {
+  height: 36px;
+  padding: 4px;
+  gap: 0;
+  border-radius: 8px;
+  background: transparent;
+}
+.cf-tabs[data-variant="segmented"] .cf-tabs-indicator {
+  border-radius: 5px;
+  background: var(--surface);
+  box-shadow: 0 1px 2px #0000001a, 0 0 0 1px var(--border-strong), inset 0 1px 0 #ffffff70;
+}
+.cf-tabs[data-variant="underline"] [role="tablist"] {
+  height: 36px;
+  gap: 12px;
+  padding: 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.cf-tabs[data-variant="underline"] [role="tab"] { padding: 0 10px; border-radius: 3px 3px 0 0; }
+.cf-tabs[data-variant="underline"] .cf-tabs-indicator { height: 2px; background: var(--cf-blue); border-radius: 2px 2px 0 0; }
+.cf-console .cf-group-tabs { width: fit-content; }
+.cf-console .cf-chart-tabs { flex: 0 0 auto; min-width: 108px; }
+/* These two fixed labels always fit. Resizing a moving indicator must not add scroll arrows. */
+.cf-chart-tabs [role="tablist"] { overflow: clip; }
+.cf-chart-tabs [data-kumo-part="overflow-control"] { display: none; }
+.cf-console .cf-range-tabs { flex-shrink: 0; }
+.cf-console .instance-chart-controls { align-items: center; }
+.cf-console .cf-server-results { min-width: 0; }
+@media (max-width: 650px) {
+  .cf-console .cf-tabs [role="tab"] { padding-left: 10px; padding-right: 10px; }
+  .cf-tabs[data-variant="underline"] [role="tablist"] { gap: 8px; }
+}
+
+/* Stretch the real title link over the surface; nested controls remain above it. */
+.cf-card-primary-link::after { content: ""; position: absolute; inset: 0; z-index: 1; cursor: pointer; }
+.cf-console :is(.server-card, .compact-node-card, .mini-node-card) :is(
+  button, input, select, [role="button"], .server-card-detail-link,
+  .compact-node-detail-link, .mini-node-os, .multi-ping-status,
+  .server-health-chart-wrap, .compact-node-health-bars, .mini-health-bars,
+  .traffic-dot-strip
+) { position: relative; z-index: 2; }
+.cf-console :is(.server-card, .compact-node-card, .mini-node-card):has(:focus-visible) {
+  outline: 2px solid var(--cf-blue); outline-offset: 3px;
+}
+:root[data-appearance] .cf-console :is(.server-card, .compact-node-card, .mini-node-card, .cf-metric, .cf-panel, .instance-chart-card) {
+  transition: transform 380ms var(--cf-ease), box-shadow 380ms var(--cf-ease),
+    border-color 280ms ease, background-color 280ms ease;
+  transform: translateY(0);
+}
+@media (hover: hover) and (pointer: fine) {
+  :root[data-appearance] .cf-console :is(.server-card, .compact-node-card, .mini-node-card):hover {
+    transform: translateY(-2px);
+    border-color: var(--border-strong);
+    box-shadow: 0 0 0 4px var(--cf-frame-fill), 0 0 0 5px var(--cf-frame-edge), 0 12px 22px -10px var(--cf-frame-shadow);
+    background: var(--surface);
+  }
+  :root[data-appearance="dark"] .cf-console :is(.server-card, .compact-node-card, .mini-node-card):hover {
+    box-shadow: 0 0 0 4px var(--cf-frame-fill), 0 0 0 5px var(--cf-frame-edge), 0 12px 24px -8px #0008;
+  }
+  :root[data-appearance] .cf-console :is(.cf-metric, .cf-panel, .instance-chart-card):hover {
+    transform: none;
+    border-color: var(--border-strong);
+    box-shadow: 0 0 0 4px var(--cf-frame-fill), 0 0 0 5px var(--cf-frame-edge), 0 10px 20px -12px var(--cf-frame-shadow);
+  }
+  :root[data-appearance] .cf-console :is(.server-card, .compact-node-card, .mini-node-card):has(.cf-card-primary-link:active) {
+    transform: translateY(-1px) scale(0.995);
+    transition-duration: 160ms;
+  }
+}
+.cf-console .node-list-row:not(.node-list-head) {
+  transition: background-color 180ms ease, box-shadow 180ms ease;
+}
+.cf-console .node-list-row:not(.node-list-head):hover {
+  box-shadow: inset 2px 0 var(--cf-blue);
+  background: color-mix(in srgb, var(--cf-blue) 4%, var(--surface));
+}
+/* Workers-style surfaces: neutral edge, inner highlight, small contact shadow. */
+:root[data-appearance="dark"] .cf-console {
+  --cf-control-rail: #141414;
+  --cf-chart-line: #78a9e8;
+  --cf-frame-fill: rgb(255 255 255 / 4%);
+  --cf-frame-edge: rgb(255 255 255 / 10%);
+  --cf-frame-shadow: rgb(0 0 0 / 45%);
+}
+:root[data-appearance] .cf-console :is(.server-card, .compact-node-card, .mini-node-card, .instance-panel, .cf-panel, .cf-metric) {
+  border-radius: 10px;
+  border-color: var(--border-strong);
+  box-shadow: 0 0 0 4px var(--cf-frame-fill), 0 0 0 5px var(--cf-frame-edge), 0 8px 16px -10px var(--cf-frame-shadow);
+}
+.cf-console :is(.cf-page-actions [data-kumo-component="Button"], .cf-primary-link) {
+  min-height: 34px; border-radius: 8px; padding: 0 12px; font-size: 12px;
+  transition: box-shadow 280ms var(--cf-ease), filter 280ms ease, transform 280ms var(--cf-ease);
+}
+.cf-console .cf-primary-link { color: #fff; }
+.cf-console :is(.cf-page-actions [data-kumo-component="Button"], .control-button, .home-sort-trigger, .instance-switcher-trigger) {
+  background: var(--surface); border: 1px solid var(--border-strong);
+  box-shadow: 0 1px 2px #0000000c, inset 0 1px 0 #ffffff20;
+  border-radius: 8px; font-weight: 400;
+}
+.cf-console :is(.cf-page-actions [data-kumo-component="Button"], .control-button, .home-sort-trigger, .instance-switcher-trigger):hover {
+  background: var(--surface); box-shadow: 0 2px 4px #00000012, inset 0 0 0 1px var(--border-subtle);
+}
+.cf-console .cf-primary-link:hover { filter: brightness(1.045); }
+.cf-console :is(.cf-primary-link, .cf-page-actions button):active { transform: translateY(1px); filter: brightness(0.98); }
+.cf-console .instance-toggle-button:has(> svg) {
+  border: 1px solid var(--border); background: var(--surface); border-radius: 6px;
+  box-shadow: 0 1px 2px #00000008; transition: background-color 260ms ease, box-shadow 260ms ease;
+}
+.cf-console .instance-toggle-button:disabled { cursor: default; }
+/* Keep card hierarchy quiet; color still identifies metrics, tags and health. */
+.cf-console :is(.compact-node-title, .mini-node-title, .server-card-title-link) {
+  font-size: 14px; font-weight: 500; letter-spacing: -0.1px;
+}
+.cf-console :is(.compact-node-gauge strong, .mini-metric-value, .server-metric-value) {
+  font-size: 12px; font-weight: 500; letter-spacing: 0;
+}
+.cf-console :is(.compact-node-gauge-label, .mini-metric-label, .multi-ping-name,
+  .compact-node-info-row-value, .compact-node-traffic-uptime, .compact-node-traffic-value,
+  .server-card-meta-value, .mini-node-flow-row strong) { font-weight: 400; }
+.cf-console :is(.multi-ping-value, .compact-node-health-value, .mini-node-health-value) {
+  font-weight: 500; letter-spacing: 0;
+}
+.cf-console :is(.compact-node-tag, .mini-node-tag, .server-card [data-tag]) {
+  border-radius: 4px; font-weight: 400;
+  background: color-mix(in srgb, var(--tag-bg) 45%, var(--surface));
+  border-color: color-mix(in srgb, var(--tag-fg) 10%, var(--border-subtle));
+}
+.cf-console .compact-node-gauge-track {
+  height: 4px; border-radius: 3px; -webkit-mask: none; mask: none;
+}
+.cf-console .compact-node-info-strip { background: var(--surface-sunken); box-shadow: none; }
+.cf-console .compact-node-traffic-pulse { opacity: 0.6; }
+/* Each chart is drawn at its measured size, so axes retain the same type scale. */
+.cf-console .cf-chart { padding: 4px 18px; }
+.cf-traffic-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 14px 0 8px; }
+.cf-traffic-row + .cf-traffic-row { border-top: 1px solid var(--border-subtle); }
+.cf-traffic-summary { min-width: 0; display: flex; align-items: center; gap: 10px; padding-left: 4px; }
+.cf-traffic-summary > span { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-secondary); }
+.cf-traffic-summary > span svg { color: var(--cf-blue); }
+.cf-traffic-summary > strong { font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cf-traffic-plot { position: relative; min-width: 0; height: 140px; }
+.cf-traffic-plot svg { display: block; overflow: visible; }
+.cf-console .cf-chart text { font-family: var(--font-sans); font-size: 11px; fill: #748091; }
+.cf-console .cf-chart-grid { stroke: #dce1e7; stroke-dasharray: 4 4; }
+.cf-chart-tick { stroke: #9199a3; }
+.cf-traffic-line { stroke: var(--cf-chart-line); }
+.cf-console .cf-chart-waiting { top: 43%; left: 64px; font-size: 12px; }
+.cf-console .cf-panel-heading { background: color-mix(in srgb, var(--surface-sunken) 55%, var(--surface)); }
+.cf-console .cf-panel-heading h2 { font-size: 14px; }
+.cf-console .cf-metric p { font-size: 12px; }
+.cf-console .cf-insights { gap: 22px; margin-top: 24px; margin-bottom: 30px; }
+.cf-console .cf-metrics { gap: 22px; }
+:root[data-appearance="dark"] .cf-console .cf-chart text { fill: #a5afbc; }
+:root[data-appearance="dark"] .cf-console .cf-chart-grid { stroke: #383d44; }
+@media (max-width: 720px) {
+  .cf-traffic-row { grid-template-columns: minmax(0, 1fr); gap: 8px; padding-top: 16px; }
+  .cf-console .cf-chart { padding: 0 12px; }
+  .cf-console .cf-metrics { gap: 18px; }
+}
+.cf-console .cf-health-panel { align-self: start; padding-bottom: 0; }
+.cf-cluster-all { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-secondary); }
+.cf-cluster-all:hover { color: var(--cf-blue); }
+.cf-cluster-notice { display: flex; align-items: center; gap: 8px; margin: 16px 18px 0; font-size: 12px; color: var(--status-success); }
+.cf-cluster-notice.is-warning { color: var(--status-warning); }
+.cf-cluster-counts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 16px 18px; }
+.cf-cluster-counts > div + div { padding-left: 16px; border-left: 1px solid var(--border-subtle); }
+.cf-cluster-counts dt { display: flex; align-items: center; gap: 5px; color: var(--text-tertiary); font-size: 11px; }
+.cf-cluster-counts dd { margin: 4px 0 0; font-size: 22px; line-height: 1.25; font-weight: 500; }
+.cf-cluster-counts i, .cf-cluster-node-status i { width: 5px; height: 5px; border-radius: 50%; background: var(--text-tertiary); }
+.cf-cluster-counts .is-online, .cf-cluster-node-status[data-state="online"] i { background: var(--status-success); }
+.cf-cluster-counts .is-offline, .cf-cluster-node-status[data-state="offline"] i { background: var(--status-warning); }
+.cf-cluster-nodes { margin: 0 18px; border-top: 1px solid var(--border-subtle); max-height: 184px; overflow-y: auto; scrollbar-width: thin; }
+.cf-cluster-node { display: flex; align-items: center; gap: 9px; min-height: 44px; border-bottom: 1px solid var(--border-subtle); font-size: 12px; padding: 0 4px; }
+.cf-cluster-node:last-child { border-bottom: 0; }
+.cf-cluster-node > svg { flex: 0 0 auto; color: var(--text-tertiary); }
+.cf-cluster-node-name { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cf-cluster-node:hover { background: var(--hover-bg); color: var(--cf-blue); }
+.cf-cluster-node-status { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-secondary); white-space: nowrap; }
+.cf-cluster-node-status[data-state="offline"] { color: var(--status-warning); }
+.cf-cluster-connections { padding: 13px 18px 15px; background: color-mix(in srgb, var(--surface-sunken) 60%, var(--surface)); border-top: 1px solid var(--border-subtle); }
+.cf-cluster-connections-title { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--text-secondary); }
+.cf-cluster-connections-title strong { color: var(--text-primary); font-weight: 500; }
+.cf-cluster-connections dl { display: flex; gap: 24px; margin-top: 8px; }
+.cf-cluster-connections dl > div { display: flex; gap: 8px; font-size: 11px; }
+.cf-cluster-connections dt { color: var(--text-tertiary); }
+.cf-cluster-connections dd { margin: 0; font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: reduce) {
+  .cf-console *, .cf-console *::before, .cf-console *::after {
+    animation: none !important; transition: none !important;
+  }
+  :root[data-appearance] .cf-console :is(.server-card, .compact-node-card, .mini-node-card, .cf-metric, .cf-panel, .instance-chart-card) { transform: none !important; }
+}
